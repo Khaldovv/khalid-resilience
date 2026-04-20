@@ -52,6 +52,7 @@ if (process.env.SENTRY_DSN) {
 }
 
 // ── Global Middleware ──────────────────────────────────────────────────────────
+app.set('trust proxy', 1); // Railway/Vercel use reverse proxies
 app.use(helmet());
 // ── CORS — flexible for dev/staging/production ────────────────────────────────
 const allowedOrigins = [
