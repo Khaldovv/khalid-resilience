@@ -3,7 +3,7 @@
  * Creates tables for asset management, process linking, and asset dependencies
  * per ISO 22301 Clause 8.2.2
  */
-export async function up(knex) {
+exports.up = async function(knex) {
   // 1 ── bia_assets ────────────────────────────────────────────────────────────
   await knex.schema.createTable('bia_assets', t => {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
@@ -70,7 +70,7 @@ export async function up(knex) {
   });
 }
 
-export async function down(knex) {
+exports.down = async function(knex) {
   await knex.schema.dropTableIfExists('bia_asset_dependencies');
   await knex.schema.dropTableIfExists('bia_asset_process_links');
   await knex.schema.dropTableIfExists('bia_assets');
