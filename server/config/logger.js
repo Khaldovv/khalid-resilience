@@ -33,19 +33,22 @@ const logger = winston.createLogger({
   ],
 });
 
-// Console transport only in development
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(({ level, message, timestamp, service, ...meta }) => {
-          const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
-          return `${timestamp} [${level}] ${message}${metaStr}`;
-        })
-      ),
-    })
-  );
-}
+// Console transport — always on (Railway/Vercel capture stdout)
+logger.add(
+  new winston.transports.Console({
+    format: process.env.NODE_ENV === 'production'
+      ? winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.json()
+        )
+      : winston.format.combine(
+          winston.format.colorize(),
+          winston.format.printf(({ level, message, timestamp, service, ...meta }) => {
+            const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+            return `${timestamp} [${level}] ${message}${metaStr}`;
+          })
+        ),
+  })
+);
 
 module.exports = logger;
