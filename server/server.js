@@ -189,9 +189,25 @@ app.use((err, req, res, _next) => {
 // ── Auto-migration on startup ─────────────────────────────────────────────────
 const startServer = async () => {
   try {
+    logger.info('[DB] Testing database connection...');
+    await db.raw('SELECT 1');
+    logger.info('[DB] Database connected successfully');
+
+    // Force-release any stale migration lock
+    try {
+      await db.migrate.forceFreeMigrationsLock();
+      logger.info('[DB] Migration lock released');
+    } catch (lockErr) {
+      logger.info('[DB] No migration lock to release');
+    }
+
     logger.info('[DB] Running pending migrations...');
-    await db.migrate.latest();
-    logger.info('[DB] Migrations complete');
+    const [batchNo, migrationLog] = await db.migrate.latest();
+    if (migrationLog.length > 0) {
+      logger.info(`[DB] Batch ${batchNo}: ran ${migrationLog.length} migrations`, { migrations: migrationLog });
+    } else {
+      logger.info('[DB] No pending migrations');
+    }
 
     // Auto-seed if database is empty
     const userCount = await db('users').count('id as c').first();
@@ -201,7 +217,7 @@ const startServer = async () => {
       logger.info('[DB] Seeds complete');
     }
   } catch (err) {
-    logger.warn('[DB] Migration/seed error (server will start anyway)', { error: err.message });
+    logger.error('[DB] Migration/seed error:', { error: err.message, stack: err.stack });
   }
 
   app.listen(PORT, () => {
