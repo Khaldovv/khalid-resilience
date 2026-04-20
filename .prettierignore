@@ -1,0 +1,6 @@
+dist/
+node_modules/
+server/node_modules/
+*.min.js
+*.min.css
+server/logs/

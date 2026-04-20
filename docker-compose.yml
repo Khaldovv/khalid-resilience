@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # ── PostgreSQL Database ──────────────────────────────────────────────────────
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: grc_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-khalid_resilience_2026}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Backend API Server ───────────────────────────────────────────────────────
+  backend:
+    build: ./server
+    environment:
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-khalid_resilience_2026}@postgres:5432/grc_platform
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      NODE_ENV: production
+      PORT: 3001
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    volumes:
+      - backend-logs:/app/logs
+    restart: unless-stopped
+
+  # ── Frontend (Nginx) ────────────────────────────────────────────────────────
+  frontend:
+    build: .
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
+  backend-logs:
+    driver: local

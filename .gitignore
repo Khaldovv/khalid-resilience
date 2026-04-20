@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnp.*
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Logs
+logs/
+*.log
+combined-*.log
+error-*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Test
+coverage/
+test-results/
+playwright-report/
+
+# Misc
+*.tgz
+.gemini/
