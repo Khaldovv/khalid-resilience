@@ -1,8 +1,9 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { demoRisks } from "../data/demoRisks";
+import { risksAPI } from "../services/api";
 
 // ─── Shared Risk Data Store ───────────────────────────────────────────────────
-// Provides a centralized risk state that all pages (Risk Register, AI Assistant) share.
+// Fetches risks from the backend API. Falls back to demo data only if API fails.
 
 const RiskContext = createContext();
 
@@ -16,26 +17,106 @@ function getRiskLevel(likelihood, impact) {
   return { score, label: { en: "Very Low", ar: "منخفض جداً" }, color: "#22c55e" };
 }
 
-// ─── Seed data (120 demo risks from data file) ────────────────────────────────
-const seedRisks = demoRisks;
-
-let riskIdCounter = 4000;
+// ─── Normalize backend risk to frontend format ─────────────────────────────────
+function normalizeRisk(r) {
+  return {
+    id: r.id,
+    date: r.created_at ? new Date(r.created_at).toISOString().slice(0, 10) : '',
+    department: r.department_id || '',
+    riskType: r.risk_type || 'Operational',
+    category: r.risk_type || 'Operational',
+    riskName: r.risk_name,
+    risk_name: r.risk_name,
+    description: r.description || '',
+    owner: r.risk_owner_id || '',
+    inherentScore: r.inherent_score,
+    inherentLabel: r.inherent_level,
+    inherentColor: r.inherent_level === 'Catastrophic' ? '#7f1d1d' : r.inherent_level === 'High' ? '#ef4444' : r.inherent_level === 'Medium' ? '#f97316' : r.inherent_level === 'Low' ? '#eab308' : '#22c55e',
+    residualScore: r.residual_score || 0,
+    residualLabel: r.residual_level || '—',
+    residualColor: r.residual_level === 'Catastrophic' ? '#7f1d1d' : r.residual_level === 'High' ? '#ef4444' : r.residual_level === 'Medium' ? '#f97316' : r.residual_level === 'Low' ? '#eab308' : r.residual_level === 'Very Low' ? '#22c55e' : '#94a3b8',
+    inherent: r.inherent_level,
+    residual: r.residual_level || '—',
+    status: r.lifecycle_status || 'IDENTIFIED',
+    lifecycleStatus: r.lifecycle_status || 'IDENTIFIED',
+    aiStatus: r.response_type || '',
+    aiColor: 'blue',
+    score: r.inherent_score,
+    delta: 0,
+    source: 'backend',
+    // Keep raw backend fields for simulation
+    inherent_likelihood: r.inherent_likelihood,
+    inherent_impact: r.inherent_impact,
+    residual_likelihood: r.residual_likelihood,
+    residual_impact: r.residual_impact,
+    confidence_level: r.confidence_level,
+    department_id: r.department_id,
+    risk_owner_id: r.risk_owner_id,
+    response_type: r.response_type,
+    mitigation_plan: r.mitigation_plan,
+  };
+}
 
 export function RiskProvider({ children }) {
-  const [risks, setRisks] = useState(seedRisks);
+  const [risks, setRisks] = useState(demoRisks); // Start with demo data immediately
+  const [isBackendConnected, setIsBackendConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Add a single risk (from AddRiskModal)
-  const addRisk = (risk) => {
+  // Try to load risks from backend on mount
+  const fetchRisks = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('grc_token');
+      if (!token) {
+        setLoading(false);
+        return; // No auth — stay with demo data
+      }
+      const result = await risksAPI.list({ per_page: 100 });
+      if (result?.data && result.data.length > 0) {
+        const normalized = result.data.map(normalizeRisk);
+        setRisks(normalized);
+        setIsBackendConnected(true);
+      }
+    } catch (err) {
+      console.warn('[RiskContext] Backend not available, using demo data:', err.message);
+      // Keep demo data
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchRisks(); }, [fetchRisks]);
+
+  // Add a single risk (from AddRiskModal) — try backend first
+  const addRisk = async (risk) => {
+    if (isBackendConnected) {
+      try {
+        const created = await risksAPI.create({
+          risk_name: risk.riskName || risk.risk_name,
+          description: risk.description,
+          risk_type: risk.riskType || risk.risk_type || 'Operational',
+          inherent_likelihood: risk.inherentLikelihood || risk.inherent_likelihood || 3,
+          inherent_impact: risk.inherentImpact || risk.inherent_impact || 3,
+          confidence_level: risk.confidenceLevel || risk.confidence_level || 3,
+          department_id: risk.department_id || risk.department || null,
+        });
+        const normalized = normalizeRisk(created);
+        setRisks((prev) => [normalized, ...prev]);
+        return normalized;
+      } catch (err) {
+        console.error('[RiskContext] Failed to create via API:', err);
+      }
+    }
+    // Fallback: add locally
     setRisks((prev) => [risk, ...prev]);
+    return risk;
   };
 
   // Add multiple AI-generated risks
   const addAIRisks = (aiRisks, department, employeeName) => {
-    const newRisks = aiRisks.map((r) => {
-      riskIdCounter++;
+    const newRisks = aiRisks.map((r, i) => {
       const level = getRiskLevel(r.likelihood, r.impact);
       return {
-        id: `RSK-${riskIdCounter}`,
+        id: `AI-${Date.now()}-${i}`,
         date: new Date().toISOString().slice(0, 10),
         department,
         riskType: "AI-Generated",
@@ -75,11 +156,17 @@ export function RiskProvider({ children }) {
 
   // Update risk fields (from Edit view)
   const updateRisk = (riskId, changes) => {
+    // If backend connected, also update on server
+    if (isBackendConnected) {
+      risksAPI.update(riskId, changes).catch(err => 
+        console.error('[RiskContext] Failed to update via API:', err)
+      );
+    }
+
     setRisks((prev) =>
       prev.map((r) => {
         if (r.id !== riskId) return r;
         const updated = { ...r };
-        // Map snake_case changes to camelCase fields used in demo data
         if (changes.residual_likelihood != null) updated.residualLikelihood = changes.residual_likelihood;
         if (changes.residual_impact != null) updated.residualImpact = changes.residual_impact;
         if (changes.residual_score != null) {
@@ -103,8 +190,11 @@ export function RiskProvider({ children }) {
     );
   };
 
+  // Refresh risks from backend
+  const refreshRisks = () => { fetchRisks(); };
+
   return (
-    <RiskContext.Provider value={{ risks, addRisk, addAIRisks, updateRiskStatus, updateRisk }}>
+    <RiskContext.Provider value={{ risks, addRisk, addAIRisks, updateRiskStatus, updateRisk, refreshRisks, isBackendConnected, loading }}>
       {children}
     </RiskContext.Provider>
   );
