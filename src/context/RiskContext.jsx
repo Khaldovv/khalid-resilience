@@ -73,7 +73,10 @@ export function RiskProvider({ children }) {
       const result = await risksAPI.list({ per_page: 100 });
       if (result?.data && result.data.length > 0) {
         const normalized = result.data.map(normalizeRisk);
-        setRisks(normalized);
+        // Merge backend risks with demo data (backend risks first, avoiding duplicates)
+        const backendIds = new Set(normalized.map(r => r.id));
+        const uniqueDemoRisks = demoRisks.filter(r => !backendIds.has(r.id));
+        setRisks([...normalized, ...uniqueDemoRisks]);
         setIsBackendConnected(true);
       }
     } catch (err) {
