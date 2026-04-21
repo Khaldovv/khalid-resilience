@@ -22,7 +22,7 @@ import { useBIA } from "../context/BIAContext";
 import {
   LayoutDashboard, BookOpen, Activity, Sparkles, ShieldCheck,
   Settings, Bell, Search, AlertTriangle, CheckCircle2,
-  Clock, Zap, Globe, Lock, Database, Server,
+  Clock, Zap, Globe, Lock, Database, Server, Users, Package,
   ChevronLeft, Play, Download, Filter, RefreshCw, Eye,
   Network, Shield, AlertCircle, Radio, BarChart3,
   ArrowUpRight, ArrowDownRight, Cpu, GitBranch, Terminal,
@@ -778,7 +778,16 @@ const RiskRegisterView = ({ onSelectRisk }) => {
   const dotColor = (c) => ({ emerald: "bg-emerald-400", blue: "bg-blue-400", amber: "bg-amber-400", red: "bg-red-400", violet: "bg-violet-400" }[c] || "bg-slate-400");
 
   const catIcon = (cat) => {
-    const m = { "الأمن السيبراني": Lock, "تشغيلي": Server, "امتثال": ShieldCheck, "مالي": BarChart3, "جيوسياسي": Globe, "سمعي": Eye };
+    const m = {
+      "الأمن السيبراني": Lock, "أمن سيبراني": Lock,
+      "تشغيلي": Server, "تقنية المعلومات": Server, "العمليات": Server,
+      "امتثال": ShieldCheck, "الامتثال التنظيمي": ShieldCheck,
+      "مالي": BarChart3, "المالية": BarChart3,
+      "جيوسياسي": Globe, "استراتيجي": Globe, "التخطيط الاستراتيجي": Globe,
+      "سمعي": Eye, "التسويق": Eye,
+      "قانوني": ShieldCheck, "الشؤون القانونية": ShieldCheck,
+      "الموارد البشرية": Users, "المشتريات": Package,
+    };
     const I = m[cat] || AlertCircle;
     return <I size={12} className="text-slate-500" />;
   };
@@ -988,11 +997,10 @@ const RiskRegisterView = ({ onSelectRisk }) => {
                   { label: "التاريخ", key: "date" },
                   { label: "الإدارة", key: "department" },
                   { label: "نوع الخطر", key: "riskType" },
-                  { label: "اسم الخطر", key: "riskName" },
+                  { label: "اسم الخطر", key: "riskName", wide: true },
                   { label: "الخطر الكامن", key: "inherentScore" },
                   { label: "الخطر المتبقي", key: "residualScore" },
                   { label: "الحالة", key: "status" },
-                  { label: "المالك", key: "owner" },
                   { label: "نوع الاستجابة", key: "responseType" },
                   { label: viewTab === "pending" ? "الإجراءات" : "الإجراء الحالي", key: null },
                 ].map(h => (
@@ -1021,21 +1029,21 @@ const RiskRegisterView = ({ onSelectRisk }) => {
                   {/* التاريخ */}
                   <td className="px-3 py-3.5 text-slate-500 font-mono text-[11px] whitespace-nowrap" style={{ direction: "ltr" }}>{r.date || "—"}</td>
                   {/* الإدارة */}
-                  <td className="px-3 py-3.5 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5 justify-end">
+                  <td className="px-3 py-3.5 whitespace-nowrap text-right">
+                    <div className="flex items-center gap-1.5 justify-end" style={{direction:'rtl'}}>
+                      {catIcon(r.department || r.riskType || r.category)}
                       <span className="text-slate-400 text-[11px]">{r.department || r.category}</span>
-                      {catIcon(r.riskType || r.category)}
                     </div>
                   </td>
                   {/* نوع الخطر */}
                   <td className="px-3 py-3.5 whitespace-nowrap text-right">
-                    <span className="text-[11px] text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded">
+                    <span className="text-[10px] text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded">
                       {r.riskType || r.category || "—"}
                     </span>
                   </td>
-                  {/* اسم الخطر */}
-                  <td className="px-3 py-3.5 text-slate-300 max-w-[180px] text-right">
-                    <span className="line-clamp-1 font-medium">{r.riskName || r.description}</span>
+                  {/* اسم الخطر — عريض */}
+                  <td className="px-3 py-3.5 text-slate-300 text-right" style={{minWidth: 280, maxWidth: 380}}>
+                    <span className="line-clamp-2 font-medium text-[12px] leading-relaxed">{r.riskName || r.description}</span>
                   </td>
                   {/* الخطر الكامن */}
                   <td className="px-3 py-3.5 whitespace-nowrap">
@@ -1049,8 +1057,6 @@ const RiskRegisterView = ({ onSelectRisk }) => {
                   <td className="px-3 py-3.5 whitespace-nowrap text-right">
                     {statusBadge(r.lifecycleStatus || r.status)}
                   </td>
-                  {/* المالك */}
-                  <td className="px-3 py-3.5 text-slate-300 whitespace-nowrap text-right text-[11px]">{r.owner}</td>
                   {/* نوع الاستجابة */}
                   <td className="px-3 py-3.5 whitespace-nowrap text-right">
                     {r.responseType ? (

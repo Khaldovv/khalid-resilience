@@ -280,10 +280,15 @@ function RiskDetailDrawerInner({ risk, onClose }) {
 
   // ─── Details Grid items ───────────────────────────────────────────────────
   const detailItems = risk ? [
-    { key: "category", label: isAr ? "الفئة" : "Category", value: safe(risk.category || risk.riskType || risk.risk_type || risk.cat) },
-    { key: "owner", label: isAr ? "المالك" : "Owner", value: safe(risk.owner) },
+    { key: "category", label: isAr ? "نوع الخطر" : "Risk Type", value: safe(risk.riskType || risk.category || risk.risk_type || risk.cat) },
+    { key: "department", label: isAr ? "الإدارة" : "Department", value: safe(risk.department) },
+    { key: "owner", label: isAr ? "رائد الخطر" : "Risk Champion", value: safe(risk.owner) },
+    { key: "responseType", label: isAr ? "نوع الاستجابة" : "Response Type", value: safe(risk.responseType || risk.response_type) },
     { key: "aiStatus", label: isAr ? "الإجراء الحالي" : "Current Action", value: safe(risk.aiStatus || risk.response_type) },
   ] : [];
+
+  // ─── Risk description ────────────────────────────────────────────────────
+  const riskDescription = risk ? safe(risk.description || '') : '';
 
   // ─── EARLY RETURN (after all hooks) ───────────────────────────────────────
   if (!risk) return null;
@@ -461,6 +466,23 @@ function RiskDetailDrawerInner({ risk, onClose }) {
                   </div>
                 ))}
               </div>
+
+              {/* Risk Description */}
+              {riskDescription && (
+                <div style={{
+                  borderRadius: 12,
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-primary)",
+                  padding: "14px 16px",
+                }}>
+                  <p style={{ fontSize: 10, color: "var(--text-dim)", fontFamily: "monospace", letterSpacing: "0.1em", marginBottom: 8 }}>
+                    {isAr ? "وصف الخطر التفصيلي" : "RISK DESCRIPTION"}
+                  </p>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary, #94a3b8)", lineHeight: 1.7 }}>
+                    {riskDescription}
+                  </p>
+                </div>
+              )}
 
               {/* Dynamic Timeline */}
               <div>
