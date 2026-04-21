@@ -420,33 +420,21 @@ export async function generateBCPDocx(plan) {
 }
 
 /**
- * Download BCP plan as DOCX — fully client-side, no backend needed
+ * Download BCP plan as DOCX — fully client-side using file-saver for reliable downloads
  */
 export async function downloadBCPDocx(plan) {
+  const { saveAs } = await import('file-saver');
   const rawBlob = await generateBCPDocx(plan);
   
-  // Re-wrap blob with explicit DOCX MIME type to ensure correct file association
+  // Re-wrap blob with explicit DOCX MIME type
   const docxBlob = new Blob([rawBlob], {
     type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   });
   
-  // plan.id is already 'BCP-2026-001', so just use it directly
+  // plan.id is already 'BCP-2026-001', just append suffix
   const filename = `${plan.id}-Plan.docx`;
   
-  // Use the most reliable cross-browser download method
-  const url = window.URL.createObjectURL(docxBlob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  link.style.position = 'fixed';
-  link.style.left = '-9999px';
-  document.body.appendChild(link);
-  link.click();
-  
-  // Give browser enough time to initiate the download
-  setTimeout(() => {
-    try { document.body.removeChild(link); } catch(e) { /* already removed */ }
-    window.URL.revokeObjectURL(url);
-  }, 1000);
+  // file-saver handles all cross-browser quirks for blob downloads
+  saveAs(docxBlob, filename);
 }
+
