@@ -430,20 +430,23 @@ export async function downloadBCPDocx(plan) {
     type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   });
   
-  // Use ASCII-only filename — Arabic chars in download attribute are unreliable
-  const filename = `BCP-${plan.id}.docx`;
+  // plan.id is already 'BCP-2026-001', so just use it directly
+  const filename = `${plan.id}-Plan.docx`;
   
-  const url = URL.createObjectURL(docxBlob);
+  // Use the most reliable cross-browser download method
+  const url = window.URL.createObjectURL(docxBlob);
   const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.style.display = 'none';
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  link.style.position = 'fixed';
+  link.style.left = '-9999px';
   document.body.appendChild(link);
   link.click();
   
-  // Delay cleanup so the browser has time to start the download
+  // Give browser enough time to initiate the download
   setTimeout(() => {
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, 500);
+    try { document.body.removeChild(link); } catch(e) { /* already removed */ }
+    window.URL.revokeObjectURL(url);
+  }, 1000);
 }
