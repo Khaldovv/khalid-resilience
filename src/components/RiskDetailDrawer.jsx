@@ -27,29 +27,18 @@ const fieldNameTranslations = {
   'confidence_level':     { ar: 'مستوى الثقة', en: 'Confidence Level' },
 };
 
-// ─── Mock Audit Trail ─────────────────────────────────────────────────────────
-const mockAuditTrail = [
-  {
-    id: 1, action: 'UPDATE', field_changed: 'residual_score',
-    old_value: '20', new_value: '15',
-    user_name: 'م. خالد الغفيلي', created_at: '2026-04-03T14:30:00',
-  },
-  {
-    id: 2, action: 'UPDATE', field_changed: 'mitigation_plan',
-    old_value: '', new_value: 'تطبيق التحديثات الأمنية المعلقة وتفعيل نظام كشف التسلل المتقدم',
-    user_name: 'م. سعد الحربي', created_at: '2026-04-01T10:15:00',
-  },
-  {
-    id: 3, action: 'UPDATE', field_changed: 'lifecycle_status',
-    old_value: 'Identified', new_value: 'In Progress',
-    user_name: 'م. خالد الغفيلي', created_at: '2026-03-25T11:00:00',
-  },
-  {
-    id: 4, action: 'CREATE', field_changed: null,
-    old_value: null, new_value: null,
-    user_name: 'م. خالد الغفيلي', created_at: '2026-03-20T09:00:00',
-  },
-];
+// ─── Lifecycle status display names ──────────────────────────────────────────
+const statusLabels = {
+  'IDENTIFIED':     { ar: 'تم تحديد الخطر', en: 'Identified' },
+  'Identified':     { ar: 'تم تحديد الخطر', en: 'Identified' },
+  'PLANNED':        { ar: 'التخطيط', en: 'Planned' },
+  'IN_PROGRESS':    { ar: 'قيد المعالجة', en: 'In Progress' },
+  'UNDER_ANALYSIS': { ar: 'تحت التحليل', en: 'Under Analysis' },
+  'MONITORED':      { ar: 'مراقبة نشطة', en: 'Monitored' },
+  'ESCALATED':      { ar: 'تم التصعيد', en: 'Escalated' },
+  'Escalated':      { ar: 'تم التصعيد', en: 'Escalated' },
+  'CLOSED':         { ar: 'مغلق', en: 'Closed' },
+};
 
 export default function RiskDetailDrawer({ risk, onClose }) {
   const { language } = useApp();
@@ -59,19 +48,22 @@ export default function RiskDetailDrawer({ risk, onClose }) {
   const [visible, setVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [activeView, setActiveView] = useState("details"); // 'details' | 'edit' | 'simulation'
-  const [auditTrail, setAuditTrail] = useState(mockAuditTrail);
+  const [auditTrail, setAuditTrail] = useState([]);
+  const [localChanges, setLocalChanges] = useState([]); // Track changes made in this session
 
   useEffect(() => {
     if (risk) {
       requestAnimationFrame(() => setVisible(true));
       setActiveTab("details");
       setActiveView("details");
+      setLocalChanges([]);
       // Fetch audit trail from backend
       const fetchAudit = async () => {
         try {
-          const token = localStorage.getItem('token');
+          const token = localStorage.getItem('grc_token');
           const riskId = risk.id || risk.riskId;
-          const res = await fetch(`/api/v1/risks/${riskId}/audit-trail`, {
+          const apiBase = import.meta.env.VITE_API_URL || '/api';
+          const res = await fetch(`${apiBase}/v1/risks/${riskId}/audit-trail`, {
             headers: token ? { 'Authorization': `Bearer ${token}` } : {},
           });
           if (res.ok) {
@@ -82,7 +74,13 @@ export default function RiskDetailDrawer({ risk, onClose }) {
             }
           }
         } catch { /* Backend not available */ }
-        setAuditTrail(mockAuditTrail);
+        // Create initial audit entry from risk creation date
+        setAuditTrail([{
+          id: 0, action: 'CREATE', field_changed: null,
+          old_value: null, new_value: null,
+          user_name: risk.owner || 'النظام',
+          created_at: risk.date ? `${risk.date}T09:00:00` : new Date().toISOString(),
+        }]);
       };
       fetchAudit();
     }
@@ -95,37 +93,149 @@ export default function RiskDetailDrawer({ risk, onClose }) {
   };
 
   const handleSaveEdit = (changes) => {
+    // Track changes for audit trail
+    const now = new Date().toISOString();
+    const newEntries = [];
+    for (const [field, value] of Object.entries(changes)) {
+      const oldVal = risk[field] || risk[field.replace(/_/g, '')] || '';
+      if (String(oldVal) !== String(value)) {
+        newEntries.push({
+          id: Date.now() + Math.random(),
+          action: 'UPDATE',
+          field_changed: field,
+          old_value: String(oldVal || ''),
+          new_value: String(value),
+          user_name: isAr ? 'أنت (جلسة حالية)' : 'You (current session)',
+          created_at: now,
+        });
+      }
+    }
+    if (newEntries.length > 0) {
+      setLocalChanges(prev => [...newEntries, ...prev]);
+    }
+
     // Update risk in context
     if (updateRisk) {
       updateRisk(risk.id, changes);
     }
     setActiveView("details");
+    toast.success(isAr ? `تم حفظ ${newEntries.length} تعديل بنجاح` : `${newEntries.length} changes saved`);
   };
 
   if (!risk) return null;
 
-  // Compute severity from score, not from a stored string
-  const riskScore = risk.residualScore || risk.residual_score || risk.score || risk.inherentScore || risk.inherent_score || 0;
-  const sev = scoreToSeverity(riskScore);
+  // Compute scores: residual first, then inherent as fallback
+  const residualScore = risk.residualScore || risk.residual_score || 0;
+  const inherentScore = risk.inherentScore || risk.inherent_score || risk.score || 0;
+  const displayScore = residualScore > 0 ? residualScore : inherentScore;
+  const isResidual = residualScore > 0;
+
+  const sev = scoreToSeverity(displayScore);
   const sevLabel = sev.label[language] || sev.label.en;
 
-  const timeline = [
-    { time: isAr ? "قبل 3 أيام" : "3 days ago", event: isAr ? "تم تحديد الخطر" : "Risk identified", color: "#3b82f6" },
-    { time: isAr ? "قبل 2 يوم" : "2 days ago", event: isAr ? "تقييم أولي" : "Initial assessment", color: "#f59e0b" },
-    { time: isAr ? "قبل يوم" : "1 day ago", event: isAr ? "إجراءات التخفيف" : "Mitigation actions assigned", color: "#06b6d4" },
-    { time: isAr ? "الآن" : "Now", event: isAr ? "مراقبة نشطة" : "Active monitoring", color: "#10b981" },
-  ];
+  // Score color based on /25 scale
+  const scoreColor = displayScore >= 20 ? '#ef4444' : displayScore >= 15 ? '#f97316' : displayScore >= 10 ? '#eab308' : displayScore >= 5 ? '#22c55e' : '#94a3b8';
+
+  // ─── Dynamic Timeline from audit trail + local changes ──────────────────────
+  const combinedAudit = [...localChanges, ...auditTrail];
+  const timeline = useMemo(() => {
+    const entries = [];
+
+    // Add initial creation from risk data
+    const creationDate = risk.date || risk.created_at;
+    if (creationDate) {
+      entries.push({
+        time: formatRelativeTime(creationDate, isAr),
+        event: isAr ? 'تم تحديد الخطر' : 'Risk identified',
+        color: '#3b82f6',
+        date: new Date(creationDate.includes('T') ? creationDate : `${creationDate}T09:00:00`),
+      });
+    }
+
+    // Add lifecycle status transitions from audit trail
+    const statusChanges = combinedAudit.filter(e => e.field_changed === 'lifecycle_status');
+    statusChanges.forEach(e => {
+      const statusKey = e.new_value;
+      const label = statusLabels[statusKey];
+      entries.push({
+        time: formatRelativeTime(e.created_at, isAr),
+        event: label ? (isAr ? label.ar : label.en) : e.new_value,
+        color: statusKey === 'CLOSED' ? '#10b981' : statusKey === 'ESCALATED' || statusKey === 'Escalated' ? '#ef4444' : statusKey === 'MONITORED' ? '#06b6d4' : '#f59e0b',
+        date: new Date(e.created_at),
+      });
+    });
+
+    // Add score changes
+    const scoreChanges = combinedAudit.filter(e => e.field_changed === 'residual_score' || e.field_changed === 'inherent_score');
+    scoreChanges.forEach(e => {
+      entries.push({
+        time: formatRelativeTime(e.created_at, isAr),
+        event: isAr ? `تحديث الدرجة: ${e.old_value} → ${e.new_value}` : `Score update: ${e.old_value} → ${e.new_value}`,
+        color: '#f59e0b',
+        date: new Date(e.created_at),
+      });
+    });
+
+    // Add mitigation changes
+    const mitigationChanges = combinedAudit.filter(e => e.field_changed === 'mitigation_plan');
+    mitigationChanges.forEach(e => {
+      entries.push({
+        time: formatRelativeTime(e.created_at, isAr),
+        event: isAr ? 'تحديث خطة التخفيف' : 'Mitigation plan updated',
+        color: '#06b6d4',
+        date: new Date(e.created_at),
+      });
+    });
+
+    // Add other updates
+    const otherChanges = combinedAudit.filter(e =>
+      e.action === 'UPDATE' &&
+      !['lifecycle_status', 'residual_score', 'inherent_score', 'mitigation_plan'].includes(e.field_changed)
+    );
+    otherChanges.forEach(e => {
+      const fieldLabel = fieldNameTranslations[e.field_changed];
+      entries.push({
+        time: formatRelativeTime(e.created_at, isAr),
+        event: isAr ? `تعديل: ${fieldLabel?.ar || e.field_changed}` : `Updated: ${fieldLabel?.en || e.field_changed}`,
+        color: '#8b5cf6',
+        date: new Date(e.created_at),
+      });
+    });
+
+    // Add current state
+    const currentStatus = risk.lifecycleStatus || risk.lifecycle_status || risk.status;
+    const currentLabel = statusLabels[currentStatus];
+    if (currentLabel) {
+      entries.push({
+        time: isAr ? 'الآن' : 'Now',
+        event: isAr ? currentLabel.ar : currentLabel.en,
+        color: '#10b981',
+        date: new Date(),
+      });
+    }
+
+    // Sort by date, remove duplicates
+    const sorted = entries.sort((a, b) => a.date - b.date);
+    // Dedupe by event+time
+    const seen = new Set();
+    return sorted.filter(e => {
+      const key = `${e.event}-${e.time}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [risk, combinedAudit, isAr]);
 
   const tabs = [
     { id: "details", label: isAr ? "التفاصيل" : "Details", icon: Layers },
-    { id: "history", label: isAr ? "سجل التعديلات" : "Edit History", icon: History },
+    { id: "history", label: isAr ? `سجل التعديلات (${combinedAudit.length})` : `Edit History (${combinedAudit.length})`, icon: History },
   ];
 
   // ─── Details Grid items ───────────────────────────────────────────────────
   const detailItems = [
-    { key: "category", label: isAr ? "الفئة" : "Category", value: risk.category || risk.cat },
+    { key: "category", label: isAr ? "الفئة" : "Category", value: risk.category || risk.riskType || risk.risk_type || risk.cat },
     { key: "owner", label: isAr ? "المالك" : "Owner", value: risk.owner },
-    { key: "aiStatus", label: isAr ? "الإجراء الحالي" : "Current Action", value: risk.aiStatus },
+    { key: "aiStatus", label: isAr ? "الإجراء الحالي" : "Current Action", value: risk.aiStatus || risk.response_type },
   ];
 
   // ─── Format audit trail date ─────────────────────────────────────────────────
@@ -193,7 +303,7 @@ export default function RiskDetailDrawer({ risk, onClose }) {
                : (isAr ? "تفاصيل الخطر" : "RISK DETAILS")}
             </p>
             <p style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary, #e2e8f0)", marginTop: 4 }}>
-              {risk.name || risk.risk}
+              {risk.riskName || risk.risk_name || risk.name || risk.risk}
             </p>
           </div>
           <button
@@ -251,7 +361,7 @@ export default function RiskDetailDrawer({ risk, onClose }) {
           {/* ═══════ DETAILS TAB ═══════ */}
           {activeView === "details" && activeTab === "details" && (
             <>
-              {/* Severity + Score */}
+              {/* Severity + Score — using residual score */}
               <div style={{ display: "flex", gap: 12 }}>
                 <div style={{
                   flex: 1, padding: "14px 16px", borderRadius: 12,
@@ -264,13 +374,18 @@ export default function RiskDetailDrawer({ risk, onClose }) {
                   flex: 1, padding: "14px 16px", borderRadius: 12,
                   background: "var(--bg-card)", border: "1px solid var(--border-primary)",
                 }}>
-                  <p style={{ fontSize: 10, color: "var(--text-dim)", fontFamily: "monospace" }}>{isAr ? "درجة الخطر" : "RISK SCORE"}</p>
+                  <p style={{ fontSize: 10, color: "var(--text-dim)", fontFamily: "monospace" }}>
+                    {isAr ? "درجة الخطر" : "RISK SCORE"}
+                  </p>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-                    <span style={{ fontSize: 20, fontWeight: 800, fontFamily: "monospace", color: risk.score >= 80 ? "#f87171" : risk.score >= 60 ? "#fbbf24" : "#34d399" }}>
-                      {risk.score}
+                    <span style={{ fontSize: 20, fontWeight: 800, fontFamily: "monospace", color: scoreColor }}>
+                      {displayScore}
                     </span>
-                    <span style={{ fontSize: 11, color: risk.delta > 0 ? "#f87171" : "#34d399" }}>
-                      {risk.delta > 0 ? "+" : ""}{risk.delta}
+                    <span style={{ fontSize: 11, color: "#64748b" }}>
+                      {isResidual
+                        ? (isAr ? `متبقي (كامن: ${inherentScore})` : `residual (inherent: ${inherentScore})`)
+                        : (isAr ? "كامن" : "inherent")
+                      }
                     </span>
                   </div>
                 </div>
@@ -297,7 +412,7 @@ export default function RiskDetailDrawer({ risk, onClose }) {
                 ))}
               </div>
 
-              {/* Timeline */}
+              {/* Dynamic Timeline */}
               <div>
                 <p style={{ fontSize: 10, color: "var(--text-dim)", fontFamily: "monospace", letterSpacing: "0.1em", marginBottom: 12 }}>
                   {isAr ? "الجدول الزمني" : "TIMELINE"}
@@ -357,7 +472,14 @@ export default function RiskDetailDrawer({ risk, onClose }) {
                 {isAr ? "سجل التعديلات" : "EDIT HISTORY"}
               </p>
 
-              {auditTrail.map((entry, i) => (
+              {combinedAudit.length === 0 && (
+                <div style={{ textAlign: "center", padding: 40, color: "#64748b" }}>
+                  <History size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+                  <p style={{ fontSize: 13 }}>{isAr ? "لا توجد تعديلات مسجلة" : "No changes recorded"}</p>
+                </div>
+              )}
+
+              {combinedAudit.map((entry, i) => (
                 <div key={entry.id} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
                   {/* Timeline connector */}
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, paddingTop: 2 }}>
@@ -371,7 +493,7 @@ export default function RiskDetailDrawer({ risk, onClose }) {
                         ? <span style={{ fontSize: 12 }}>✨</span>
                         : <Edit3 size={11} style={{ color: "#06b6d4" }} />}
                     </div>
-                    {i < auditTrail.length - 1 && (
+                    {i < combinedAudit.length - 1 && (
                       <div style={{ width: 1, flex: 1, minHeight: 20, background: "#1e293b", marginTop: 4, marginBottom: 4 }} />
                     )}
                   </div>
@@ -462,4 +584,22 @@ export default function RiskDetailDrawer({ risk, onClose }) {
       </div>
     </>
   );
+}
+
+// ─── Helper: format relative time ────────────────────────────────────────────
+function formatRelativeTime(dateStr, isAr) {
+  if (!dateStr) return isAr ? 'الآن' : 'Now';
+  const date = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T09:00:00`);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return isAr ? 'الآن' : 'Just now';
+  if (diffMins < 60) return isAr ? `قبل ${diffMins} دقيقة` : `${diffMins}m ago`;
+  if (diffHours < 24) return isAr ? `قبل ${diffHours} ساعة` : `${diffHours}h ago`;
+  if (diffDays < 7) return isAr ? `قبل ${diffDays} يوم` : `${diffDays}d ago`;
+  if (diffDays < 30) return isAr ? `قبل ${Math.floor(diffDays / 7)} أسبوع` : `${Math.floor(diffDays / 7)}w ago`;
+  return isAr ? `قبل ${Math.floor(diffDays / 30)} شهر` : `${Math.floor(diffDays / 30)}mo ago`;
 }
