@@ -55,6 +55,7 @@ const fieldNameTranslations = {
 
 // ─── Lifecycle status display names ──────────────────────────────────────────
 const statusLabels = {
+  // English backend values
   'IDENTIFIED':     { ar: 'تم تحديد الخطر', en: 'Identified' },
   'Identified':     { ar: 'تم تحديد الخطر', en: 'Identified' },
   'PLANNED':        { ar: 'التخطيط', en: 'Planned' },
@@ -64,6 +65,21 @@ const statusLabels = {
   'ESCALATED':      { ar: 'تم التصعيد', en: 'Escalated' },
   'Escalated':      { ar: 'تم التصعيد', en: 'Escalated' },
   'CLOSED':         { ar: 'مغلق', en: 'Closed' },
+  // Arabic demo data values
+  'قيد المعالجة':   { ar: 'قيد المعالجة', en: 'In Progress' },
+  'تحت المراقبة':   { ar: 'تحت المراقبة', en: 'Monitored' },
+  'قيد التحليل':   { ar: 'قيد التحليل', en: 'Under Analysis' },
+  'مخطط / معتمد':  { ar: 'مخطط / معتمد', en: 'Planned' },
+  'تم التحديد':    { ar: 'تم التحديد', en: 'Identified' },
+  'مغلق':          { ar: 'مغلق', en: 'Closed' },
+  'مُصعَّد':        { ar: 'مُصعَّد', en: 'Escalated' },
+  'مرفوض':         { ar: 'مرفوض', en: 'Rejected' },
+  // English sentence-case (legacy)
+  'In Progress':    { ar: 'قيد المعالجة', en: 'In Progress' },
+  'Monitored':      { ar: 'تحت المراقبة', en: 'Monitored' },
+  'Under Analysis': { ar: 'قيد التحليل', en: 'Under Analysis' },
+  'Planned / Approved': { ar: 'مخطط / معتمد', en: 'Planned' },
+  'Closed':         { ar: 'مغلق', en: 'Closed' },
 };
 
 function RiskDetailDrawerInner({ risk, onClose }) {

@@ -801,15 +801,29 @@ const RiskRegisterView = ({ onSelectRisk }) => {
   // Status badge (supports Arabic and English status values from context)
   const statusBadge = (status) => {
     const colorMap = {
-      // Arabic
+      // Arabic — new demo data values
+      "قيد المعالجة":      { bg: "bg-cyan-950",    text: "text-cyan-400",    border: "border-cyan-800" },
+      "تحت المراقبة":      { bg: "bg-emerald-950", text: "text-emerald-400", border: "border-emerald-800" },
+      "قيد التحليل":      { bg: "bg-amber-950",   text: "text-amber-400",   border: "border-amber-800" },
+      "مخطط / معتمد":     { bg: "bg-violet-950",  text: "text-violet-400",  border: "border-violet-800" },
+      "تم التحديد":       { bg: "bg-blue-950",    text: "text-blue-400",    border: "border-blue-800" },
+      "مغلق":             { bg: "bg-slate-800",   text: "text-slate-500",   border: "border-slate-700" },
+      "مُصعَّد":           { bg: "bg-red-950",     text: "text-red-400",     border: "border-red-800" },
+      "مرفوض":            { bg: "bg-red-950",     text: "text-red-400",     border: "border-red-800" },
+      // Arabic — legacy values (backwards compat)
       "مسودة":            { bg: "bg-slate-800",   text: "text-slate-400",   border: "border-slate-700" },
       "مُحدَّد":           { bg: "bg-blue-950",    text: "text-blue-400",    border: "border-blue-800" },
-      "قيد التحليل":      { bg: "bg-amber-950",   text: "text-amber-400",   border: "border-amber-800" },
       "مُخطَّط / مُعتمَد": { bg: "bg-violet-950",  text: "text-violet-400",  border: "border-violet-800" },
       "قيد التنفيذ":      { bg: "bg-cyan-950",    text: "text-cyan-400",    border: "border-cyan-800" },
       "مُراقَب":           { bg: "bg-emerald-950", text: "text-emerald-400", border: "border-emerald-800" },
       "مُغلَق":            { bg: "bg-slate-800",   text: "text-slate-500",   border: "border-slate-700" },
-      // English (from RiskContext seed data or EN form)
+      // English (from backend / RiskContext)
+      "IDENTIFIED":         { bg: "bg-blue-950",    text: "text-blue-400",    border: "border-blue-800" },
+      "IN_PROGRESS":        { bg: "bg-cyan-950",    text: "text-cyan-400",    border: "border-cyan-800" },
+      "MONITORED":          { bg: "bg-emerald-950", text: "text-emerald-400", border: "border-emerald-800" },
+      "PLANNED":            { bg: "bg-violet-950",  text: "text-violet-400",  border: "border-violet-800" },
+      "CLOSED":             { bg: "bg-slate-800",   text: "text-slate-500",   border: "border-slate-700" },
+      "ESCALATED":          { bg: "bg-red-950",     text: "text-red-400",     border: "border-red-800" },
       "Draft":              { bg: "bg-slate-800",   text: "text-slate-400",   border: "border-slate-700" },
       "Identified":         { bg: "bg-blue-950",    text: "text-blue-400",    border: "border-blue-800" },
       "Under Analysis":     { bg: "bg-amber-950",   text: "text-amber-400",   border: "border-amber-800" },
@@ -936,12 +950,12 @@ const RiskRegisterView = ({ onSelectRisk }) => {
           </button>
           {showSevDropdown && (
             <div className="absolute top-full mt-1 right-0 z-20 w-52 rounded-xl border border-slate-700 bg-slate-900 p-2 space-y-0.5 shadow-xl">
-              {[{v:'Catastrophic',l:'كارثية'},{v:'High',l:'عالية'},{v:'Medium',l:'متوسطة'},{v:'Low',l:'منخفضة'}].map(sev => (
+              {[{v:'كارثي',l:'كارثي',color:'text-red-400'},{v:'عالي',l:'عالي',color:'text-orange-400'},{v:'متوسط',l:'متوسط',color:'text-amber-400'},{v:'منخفض',l:'منخفض',color:'text-emerald-400'}].map(sev => (
                 <label key={sev.v} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-800 cursor-pointer text-xs" style={{direction:'rtl'}}>
                   <input type="checkbox" checked={severityFilter.includes(sev.v)}
                     onChange={() => setSeverityFilter(prev => prev.includes(sev.v) ? prev.filter(s => s !== sev.v) : [...prev, sev.v])}
                     className="rounded" />
-                  <span className={`${sev.v === 'Catastrophic' ? 'text-red-400' : sev.v === 'High' ? 'text-orange-400' : sev.v === 'Medium' ? 'text-amber-400' : 'text-emerald-400'}`}>{sev.l}</span>
+                  <span className={sev.color}>{sev.l}</span>
                 </label>
               ))}
               <button onClick={() => { setSeverityFilter([]); setShowSevDropdown(false); }} className="w-full text-center text-[10px] text-slate-500 hover:text-white py-1 mt-1 border-t border-slate-800">إعادة تعيين</button>
