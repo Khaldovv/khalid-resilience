@@ -8,6 +8,7 @@ import {
   Header, Footer, AlignmentType, HeadingLevel, BorderStyle, WidthType,
   ShadingType, PageBreak, LevelFormat, PageNumber
 } from 'docx';
+import { saveAs } from 'file-saver';
 
 // ─── Styling Constants ────────────────────────────────────────────────────────
 const NAVY = '1B3A5C';
@@ -420,10 +421,10 @@ export async function generateBCPDocx(plan) {
 }
 
 /**
- * Download BCP plan as DOCX — fully client-side using file-saver for reliable downloads
+ * Download BCP plan as DOCX — fully client-side
+ * Uses file-saver (statically imported) for reliable filename handling
  */
 export async function downloadBCPDocx(plan) {
-  const { saveAs } = await import('file-saver');
   const rawBlob = await generateBCPDocx(plan);
   
   // Re-wrap blob with explicit DOCX MIME type
@@ -434,7 +435,6 @@ export async function downloadBCPDocx(plan) {
   // plan.id is already 'BCP-2026-001', just append suffix
   const filename = `${plan.id}-Plan.docx`;
   
-  // file-saver handles all cross-browser quirks for blob downloads
+  // Use file-saver (statically imported at top — no async gap)
   saveAs(docxBlob, filename);
 }
-

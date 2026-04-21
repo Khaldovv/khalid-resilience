@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useBIA } from "../../context/BIAContext";
 import { useToast } from "../ToastProvider";
+import { downloadBCPDocx } from "../../utils/bcpDocxGenerator";
 import {
   Plus, FileText, CheckCircle2, Clock, AlertTriangle, Archive, Shield,
   ChevronRight, Download, Search, Zap, Send, Trash2, Eye, FilePlus2
@@ -212,12 +213,11 @@ export default function BCPListTab({ lang = "en" }) {
     );
   };
   
-  // ─── Generate DOCX ─────────────────────────────────────────────────────────
+  // ─── Generate DOCX (static import — preserves user gesture for download) ───
   const handleGenerateDocx = async (plan) => {
     toast.success(isAr ? `جارٍ إنشاء وثيقة Word لخطة ${plan.id}...` : `Generating Word document for ${plan.id}...`);
     
     try {
-      const { downloadBCPDocx } = await import('../../utils/bcpDocxGenerator');
       await downloadBCPDocx(plan);
       toast.success(isAr ? "تم تنزيل وثيقة BCP بنجاح ✅" : "BCP document downloaded successfully ✅");
     } catch (err) {
