@@ -368,10 +368,12 @@ router.get('/:id/audit-trail', authorize('VIEW_RISKS'), async (req, res, next) =
 router.post('/:id/simulate', authorize('MANAGE_RISKS'), async (req, res, next) => {
   try {
     const { simulateRisk } = require('../services/riskSimulationService');
-    const simulation = await simulateRisk(req.params.id, req.user.id);
-    await db('risk_audit_trail').insert({
-      risk_id: req.params.id, action: 'RUN_SIMULATION', user_id: req.user.id,
-    });
+    const simulation = await simulateRisk(req.params.id, req.user.id, req.body);
+    try {
+      await db('risk_audit_trail').insert({
+        risk_id: req.params.id, action: 'RUN_SIMULATION', user_id: req.user.id,
+      });
+    } catch { /* audit trail may fail for demo risks not in DB */ }
     res.json(simulation);
   } catch (err) {
     if (err.message.includes('OPENROUTER_API_KEY')) {

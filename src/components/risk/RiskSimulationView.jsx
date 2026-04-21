@@ -369,6 +369,16 @@ export default function RiskSimulationView({ risk, onBack }) {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
+        body: JSON.stringify({
+          risk_name: risk.riskName || risk.risk_name || '',
+          description: risk.description || '',
+          risk_type: risk.riskType || risk.risk_type || risk.category || 'Operational',
+          department: risk.department || '',
+          inherent_score: risk.inherentScore || risk.inherent_score || risk.score || 0,
+          residual_score: risk.residualScore || risk.residual_score || 0,
+          inherent_likelihood: risk.inherentLikelihood || risk.inherent_likelihood || 3,
+          inherent_impact: risk.inherentImpact || risk.inherent_impact || 3,
+        }),
       });
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({}));
