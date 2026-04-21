@@ -853,39 +853,39 @@ const RiskRegisterView = ({ onSelectRisk }) => {
           <Btn variant="primary" size="sm" icon={Plus} onClick={() => setShowAddRisk(true)}>إضافة خطر</Btn>
           <Btn variant="amber" size="sm" icon={Sparkles} onClick={() => navigate('/ai-risk')}>توليد خطر بالذكاء الاصطناعي</Btn>
           <Btn variant="outline" size="sm" icon={Download} onClick={async () => {
-            toast.success('بدأ تصدير PDF — جارٍ إنشاء الملف...');
+            toast.success('جارٍ إنشاء ملف PDF...');
             const { exportToPDF } = await import('../utils/exportUtils');
             const cols = [
               { label: 'رقم الخطر', accessor: 'id' },
-              { label: 'اسم الخطر', accessor: 'riskName' },
+              { label: 'التاريخ', accessor: 'date' },
               { label: 'الإدارة', accessor: 'department' },
               { label: 'نوع الخطر', accessor: 'riskType' },
-              { label: 'الخطر الكامن', accessor: (r) => r.inherentScore || 0 },
-              { label: 'الخطر المتبقي', accessor: (r) => r.residualScore || 0 },
-              { label: 'الحالة', accessor: (r) => r.lifecycleStatus || r.status },
-              { label: 'المالك', accessor: 'owner' },
+              { label: 'اسم الخطر', accessor: 'riskName' },
+              { label: 'الخطر الكامن', accessor: (r) => `${r.inherentScore || 0} (${r.inherentLabel || '—'})` },
+              { label: 'الخطر المتبقي', accessor: (r) => `${r.residualScore || 0} (${r.residualLabel || '—'})` },
+              { label: 'الحالة', accessor: (r) => r.lifecycleStatus || r.status || '—' },
+              { label: 'رائد الخطر', accessor: 'owner' },
             ];
             const ok = await exportToPDF(filtered, cols, 'risk-register', { title: 'سجل المخاطر المؤسسي — Risk Register' });
-            if (ok) toast.success('تم تصدير PDF بنجاح ✅');
-            else toast.error('فشل تصدير PDF — تأكد من الاتصال');
+            if (ok) toast.success('تم فتح صفحة الطباعة ✅ — اختر "حفظ PDF" من نافذة الطباعة');
+            else toast.error('فشل إنشاء ملف PDF');
           }}>تصدير PDF</Btn>
           <Btn variant="ghost" size="sm" icon={Download} onClick={async () => {
-            toast.success('بدأ تصدير CSV — سيتم تنزيل الملف قريباً.');
+            toast.success('جارٍ تصدير CSV...');
             const { exportToCSV } = await import('../utils/exportUtils');
             const cols = [
               { label: 'رقم الخطر', accessor: 'id' },
+              { label: 'التاريخ', accessor: 'date' },
               { label: 'اسم الخطر', accessor: 'riskName' },
               { label: 'الوصف', accessor: 'description' },
               { label: 'الإدارة', accessor: 'department' },
               { label: 'نوع الخطر', accessor: 'riskType' },
-              { label: 'احتمالية كامنة', accessor: 'inherentLikelihood' },
-              { label: 'أثر كامن', accessor: 'inherentImpact' },
               { label: 'درجة كامنة', accessor: 'inherentScore' },
-              { label: 'احتمالية متبقية', accessor: 'residualLikelihood' },
-              { label: 'أثر متبقي', accessor: 'residualImpact' },
+              { label: 'تصنيف كامن', accessor: 'inherentLabel' },
               { label: 'درجة متبقية', accessor: 'residualScore' },
-              { label: 'الحالة', accessor: (r) => r.lifecycleStatus || r.status },
-              { label: 'المالك', accessor: 'owner' },
+              { label: 'تصنيف متبقي', accessor: 'residualLabel' },
+              { label: 'الحالة', accessor: (r) => r.lifecycleStatus || r.status || '—' },
+              { label: 'رائد الخطر', accessor: 'owner' },
               { label: 'نوع الاستجابة', accessor: 'responseType' },
             ];
             const ok = exportToCSV(filtered, cols, 'risk-register');
