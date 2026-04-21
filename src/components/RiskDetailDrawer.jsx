@@ -159,30 +159,12 @@ function RiskDetailDrawerInner({ risk, onClose }) {
     toast.success(isAr ? `تم حفظ ${newEntries.length} تعديل بنجاح` : `${newEntries.length} changes saved`);
   };
 
-  if (!risk) return null;
-
-  // Debug: log risk object to find any objects-as-children issues
-  if (typeof window !== 'undefined') {
-    console.log('[DrawerDebug] risk object:', JSON.stringify(risk, null, 2).slice(0, 2000));
-  }
-
-  // Compute scores: residual first, then inherent as fallback
-  const residualScore = Number(risk.residualScore || risk.residual_score) || 0;
-  const inherentScore = Number(risk.inherentScore || risk.inherent_score || risk.score) || 0;
-  const displayScore = residualScore > 0 ? residualScore : inherentScore;
-  const isResidual = residualScore > 0;
-
-  const sev = scoreToSeverity(displayScore);
-  const sevLabel = String(sev.label[language] || sev.label.en || '');
-
-  // Score color based on /25 scale
-  const scoreColor = displayScore >= 20 ? '#ef4444' : displayScore >= 15 ? '#f97316' : displayScore >= 10 ? '#eab308' : displayScore >= 5 ? '#22c55e' : '#94a3b8';
-
   // ─── Combined audit = local session changes + server audit trail ──────────
   const combinedAudit = useMemo(() => [...localChanges, ...auditTrail], [localChanges, auditTrail]);
 
   // ─── Dynamic Timeline from audit trail + local changes ──────────────────────
   const timeline = useMemo(() => {
+    if (!risk) return [];
     try {
       const entries = [];
 
@@ -265,17 +247,30 @@ function RiskDetailDrawerInner({ risk, onClose }) {
     }
   }, [risk, combinedAudit, isAr]);
 
+  // ─── Computed values (safe even when risk is null) ──────────────────────────
+  const residualScore = risk ? (Number(risk.residualScore || risk.residual_score) || 0) : 0;
+  const inherentScore = risk ? (Number(risk.inherentScore || risk.inherent_score || risk.score) || 0) : 0;
+  const displayScore = residualScore > 0 ? residualScore : inherentScore;
+  const isResidual = residualScore > 0;
+
+  const sev = scoreToSeverity(displayScore);
+  const sevLabel = String(sev.label[language] || sev.label.en || '');
+  const scoreColor = displayScore >= 20 ? '#ef4444' : displayScore >= 15 ? '#f97316' : displayScore >= 10 ? '#eab308' : displayScore >= 5 ? '#22c55e' : '#94a3b8';
+
   const tabs = [
     { id: "details", label: isAr ? "التفاصيل" : "Details", icon: Layers },
     { id: "history", label: isAr ? `سجل التعديلات (${combinedAudit.length})` : `Edit History (${combinedAudit.length})`, icon: History },
   ];
 
   // ─── Details Grid items ───────────────────────────────────────────────────
-  const detailItems = [
+  const detailItems = risk ? [
     { key: "category", label: isAr ? "الفئة" : "Category", value: safe(risk.category || risk.riskType || risk.risk_type || risk.cat) },
     { key: "owner", label: isAr ? "المالك" : "Owner", value: safe(risk.owner) },
     { key: "aiStatus", label: isAr ? "الإجراء الحالي" : "Current Action", value: safe(risk.aiStatus || risk.response_type) },
-  ];
+  ] : [];
+
+  // ─── EARLY RETURN (after all hooks) ───────────────────────────────────────
+  if (!risk) return null;
 
   // ─── Format audit trail date ─────────────────────────────────────────────────
   const formatDate = (dateStr) => {
