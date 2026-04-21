@@ -415,21 +415,35 @@ export async function generateBCPDocx(plan) {
     ]
   });
 
-  const buffer = await Packer.toBlob(doc);
-  return buffer;
+  const rawBlob = await Packer.toBlob(doc);
+  return rawBlob;
 }
 
 /**
  * Download BCP plan as DOCX — fully client-side, no backend needed
  */
 export async function downloadBCPDocx(plan) {
-  const blob = await generateBCPDocx(plan);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${plan.id}-خطة-BCP.docx`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const rawBlob = await generateBCPDocx(plan);
+  
+  // Re-wrap blob with explicit DOCX MIME type to ensure correct file association
+  const docxBlob = new Blob([rawBlob], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  });
+  
+  // Use ASCII-only filename — Arabic chars in download attribute are unreliable
+  const filename = `BCP-${plan.id}.docx`;
+  
+  const url = URL.createObjectURL(docxBlob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  
+  // Delay cleanup so the browser has time to start the download
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 500);
 }
