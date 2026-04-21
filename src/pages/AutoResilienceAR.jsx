@@ -23,7 +23,7 @@ import {
   LayoutDashboard, BookOpen, Activity, Sparkles, ShieldCheck,
   Settings, Bell, Search, AlertTriangle, CheckCircle2,
   Clock, Zap, Globe, Lock, Database, Server, Users, Package,
-  ChevronLeft, Play, Download, Filter, RefreshCw, Eye,
+  ChevronLeft, Play, Download, Filter, RefreshCw, Eye, FileText,
   Network, Shield, AlertCircle, Radio, BarChart3,
   ArrowUpRight, ArrowDownRight, Cpu, GitBranch, Terminal,
   Layers, Target, Crosshair, XCircle, Menu, Bot, Plus
@@ -892,6 +892,24 @@ const RiskRegisterView = ({ onSelectRisk }) => {
             if (ok) toast.success('تم تصدير CSV بنجاح ✅');
             else toast.error('فشل تصدير CSV');
           }}>تصدير CSV</Btn>
+          <Btn variant="ghost" size="sm" icon={FileText} onClick={async () => {
+            toast.success('جارٍ تصدير DOCX...');
+            const { exportToDocx } = await import('../utils/exportUtils');
+            const cols = [
+              { label: 'رقم الخطر', accessor: 'id' },
+              { label: 'التاريخ', accessor: 'date' },
+              { label: 'الإدارة', accessor: 'department' },
+              { label: 'نوع الخطر', accessor: 'riskType' },
+              { label: 'اسم الخطر', accessor: 'riskName' },
+              { label: 'الخطر الكامن', accessor: (r) => `${r.inherentScore || 0}` },
+              { label: 'الخطر المتبقي', accessor: (r) => `${r.residualScore || 0}` },
+              { label: 'الحالة', accessor: (r) => r.lifecycleStatus || r.status || '—' },
+              { label: 'رائد الخطر', accessor: 'owner' },
+            ];
+            const ok = exportToDocx(filtered, cols, 'risk-register', { title: 'سجل المخاطر المؤسسي — Risk Register' });
+            if (ok) toast.success('تم تصدير DOCX بنجاح ✅');
+            else toast.error('فشل تصدير DOCX');
+          }}>تصدير DOCX</Btn>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-slate-500 tracking-wide">سجل المخاطر المؤسسي</p>
