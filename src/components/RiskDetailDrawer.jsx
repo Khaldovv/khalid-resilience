@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Component } from "react";
 import { X, AlertTriangle, Shield, TrendingUp, TrendingDown, Clock, Target, ChevronRight, Edit3, Save, XCircle, Lock, History, Layers, Sparkles } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { useRisks } from "../context/RiskContext";
@@ -6,6 +6,32 @@ import { useToast } from "./ToastProvider";
 import RiskSimulationView from "./risk/RiskSimulationView";
 import RiskEditView from "./risk/RiskEditView";
 import { scoreToSeverity } from "../utils/riskUtils";
+
+// ─── Error Boundary for the drawer ──────────────────────────────────────────
+class DrawerErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    console.error('[DrawerErrorBoundary] Caught:', error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 40, textAlign: 'center', color: '#ef4444' }}>
+          <p style={{ fontSize: 16, fontWeight: 700 }}>⚠️ Drawer Error</p>
+          <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>{String(this.state.error?.message || this.state.error)}</p>
+          <button onClick={this.props.onClose} style={{ marginTop: 16, padding: '8px 20px', borderRadius: 8, background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0', cursor: 'pointer' }}>Close</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ─── Field name translations for audit trail ─────────────────────────────────
 const fieldNameTranslations = {
@@ -40,7 +66,7 @@ const statusLabels = {
   'CLOSED':         { ar: 'مغلق', en: 'Closed' },
 };
 
-export default function RiskDetailDrawer({ risk, onClose }) {
+function RiskDetailDrawerInner({ risk, onClose }) {
   const { language } = useApp();
   const { updateRisk } = useRisks();
   const toast = useToast();
@@ -123,6 +149,11 @@ export default function RiskDetailDrawer({ risk, onClose }) {
   };
 
   if (!risk) return null;
+
+  // Debug: log risk object to find any objects-as-children issues
+  if (typeof window !== 'undefined') {
+    console.log('[DrawerDebug] risk object:', JSON.stringify(risk, null, 2).slice(0, 2000));
+  }
 
   // Compute scores: residual first, then inherent as fallback
   const residualScore = Number(risk.residualScore || risk.residual_score) || 0;
@@ -599,4 +630,13 @@ function formatRelativeTime(dateStr, isAr) {
   if (diffDays < 7) return isAr ? `قبل ${diffDays} يوم` : `${diffDays}d ago`;
   if (diffDays < 30) return isAr ? `قبل ${Math.floor(diffDays / 7)} أسبوع` : `${Math.floor(diffDays / 7)}w ago`;
   return isAr ? `قبل ${Math.floor(diffDays / 30)} شهر` : `${Math.floor(diffDays / 30)}mo ago`;
+}
+
+// ─── Default export with Error Boundary ─────────────────────────────────────
+export default function RiskDetailDrawer(props) {
+  return (
+    <DrawerErrorBoundary onClose={props.onClose}>
+      <RiskDetailDrawerInner {...props} />
+    </DrawerErrorBoundary>
+  );
 }
