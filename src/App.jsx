@@ -19,7 +19,6 @@ import NotFound               from './pages/NotFound.jsx'
 import ERMPlatform            from './pages/ERMPlatform.jsx'
 import SOPPlaybookEN          from './pages/SOPPlaybookEN.jsx'
 import SOPPlaybookAR          from './pages/SOPPlaybookAR.jsx'
-import NRECDashboard          from './pages/NRECDashboard.jsx'
 import AIRiskAssistant        from './pages/AIRiskAssistant.jsx'
 import AIAgentView            from './pages/AIAgentView.jsx'
 import VendorManagement       from './pages/VendorManagement.jsx'
@@ -65,7 +64,6 @@ export default function App() {
           <Route path="/erm"            element={<ERMPlatform />} />
           <Route path="/sop-en"         element={<SOPPlaybookEN />} />
           <Route path="/sop-ar"         element={<SOPPlaybookAR />} />
-          <Route path="/nrec"           element={<NRECDashboard />} />
           <Route path="/ai-risk"        element={<AIRiskAssistant />} />
           <Route path="/ai-agent"       element={<AIAgentView />} />
           <Route path="/vendors"        element={<VendorManagement />} />

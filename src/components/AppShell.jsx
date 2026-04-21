@@ -39,7 +39,6 @@ const navItems = [
       { path: "/regulatory",  labelKey: "nav.regulatoryFeed",      color: "#06b6d4", icon: ScrollText },
     ],
   },
-  { path: "/nrec",           labelKey: "nav.ksaNrec",         icon: Flag,          color: "#006C35" },
   { path: "/sop-en",         labelKey: "nav.sopEn",           icon: FileCheck,     color: "#f59e0b" },
   { path: "/sop-ar",         labelKey: "nav.sopAr",           icon: FileText,      color: "#f59e0b" },
   { path: "/ai-risk",        labelKey: "nav.aiRisk",          icon: Sparkles,      color: "#8b5cf6" },
