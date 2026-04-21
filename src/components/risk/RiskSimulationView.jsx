@@ -118,6 +118,15 @@ function ConfidenceBadge({ score, isAr }) {
 // ─── Scenario Card ───────────────────────────────────────────────────────────
 function ScenarioCard({ scenario, label, borderColor, isAr, isHighlighted }) {
   const sev = severityConfig[scenario.severity] || severityConfig.MEDIUM;
+  const [expanded, setExpanded] = useState(false);
+
+  // Multi-dimensional impacts
+  const impacts = [
+    { key: 'operational', icon: '⚙️', color: '#f59e0b', label: { ar: 'التأثير التشغيلي', en: 'Operational Impact' }, textAr: scenario.operational_impact_ar, textEn: scenario.operational_impact_en },
+    { key: 'reputational', icon: '📢', color: '#8b5cf6', label: { ar: 'التأثير على السمعة', en: 'Reputational Impact' }, textAr: scenario.reputational_impact_ar, textEn: scenario.reputational_impact_en },
+    { key: 'regulatory', icon: '⚖️', color: '#ef4444', label: { ar: 'التأثير التنظيمي', en: 'Regulatory Impact' }, textAr: scenario.regulatory_impact_ar, textEn: scenario.regulatory_impact_en },
+    { key: 'human', icon: '👥', color: '#06b6d4', label: { ar: 'التأثير البشري', en: 'Human Impact' }, textAr: scenario.human_impact_ar, textEn: scenario.human_impact_en },
+  ].filter(imp => imp.textAr || imp.textEn);
 
   return (
     <div style={{
@@ -162,16 +171,17 @@ function ScenarioCard({ scenario, label, borderColor, isAr, isHighlighted }) {
         </p>
       </div>
 
-      {/* Stats Row */}
+      {/* Stats Row — Financial + Timeline + Systems + Recovery */}
       <div style={{ display: "flex", gap: 0, borderTop: "1px solid rgba(30,41,59,0.5)" }}>
         {[
-          { icon: "💰", label: isAr ? "الأثر المالي" : "Financial Impact", value: `${formatSAR(scenario.financial_impact_sar)} ${isAr ? "ريال" : "SAR"}` },
+          { icon: "💰", label: isAr ? "الأثر المالي" : "Financial", value: `${formatSAR(scenario.financial_impact_sar)} ${isAr ? "ريال" : "SAR"}` },
           { icon: "⏱", label: isAr ? "المدة" : "Timeline", value: `${scenario.timeline_days} ${isAr ? "يوم" : "days"}` },
-          { icon: "🖥", label: isAr ? "الأنظمة" : "Systems", value: `${scenario.affected_systems.length} ${isAr ? "متأثرة" : "affected"}` },
-        ].map((stat, i) => (
+          { icon: "🖥", label: isAr ? "الأنظمة" : "Systems", value: `${(scenario.affected_systems || []).length} ${isAr ? "متأثرة" : "affected"}` },
+          ...(scenario.recovery_time_hours ? [{ icon: "🔄", label: isAr ? "وقت التعافي" : "Recovery", value: `${scenario.recovery_time_hours}${isAr ? " ساعة" : "h"}` }] : []),
+        ].map((stat, i, arr) => (
           <div key={i} style={{
             flex: 1, padding: "10px 12px", textAlign: "center",
-            borderInlineEnd: i < 2 ? "1px solid rgba(30,41,59,0.5)" : "none",
+            borderInlineEnd: i < arr.length - 1 ? "1px solid rgba(30,41,59,0.5)" : "none",
           }}>
             <p style={{ fontSize: 10, color: "#64748b", marginBottom: 2 }}>{stat.icon} {stat.label}</p>
             <p style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", fontFamily: "monospace" }}>{stat.value}</p>
@@ -179,9 +189,44 @@ function ScenarioCard({ scenario, label, borderColor, isAr, isHighlighted }) {
         ))}
       </div>
 
+      {/* Multi-Dimensional Impact Section */}
+      {impacts.length > 0 && (
+        <div style={{ borderTop: "1px solid rgba(30,41,59,0.5)" }}>
+          <button onClick={() => setExpanded(!expanded)} style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "8px 16px", background: "none", border: "none", cursor: "pointer", color: "#94a3b8",
+          }}>
+            <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "monospace", letterSpacing: "0.05em" }}>
+              {isAr ? `📊 أنواع التأثير (${impacts.length})` : `📊 IMPACT TYPES (${impacts.length})`}
+            </span>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+          {expanded && (
+            <div style={{ padding: "0 16px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
+              {impacts.map((imp) => (
+                <div key={imp.key} style={{
+                  padding: "8px 12px", borderRadius: 8,
+                  background: `${imp.color}08`, border: `1px solid ${imp.color}20`,
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <span>{imp.icon}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: imp.color }}>
+                      {isAr ? imp.label.ar : imp.label.en}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 11, lineHeight: 1.6, color: "#94a3b8", margin: 0 }}>
+                    {isAr ? imp.textAr : imp.textEn}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Affected Systems Tags */}
-      {scenario.affected_systems.length > 0 && (
-        <div style={{ padding: "8px 16px 12px", display: "flex", flexWrap: "wrap", gap: 6 }}>
+      {(scenario.affected_systems || []).length > 0 && (
+        <div style={{ padding: "8px 16px 12px", display: "flex", flexWrap: "wrap", gap: 6, borderTop: impacts.length > 0 ? "none" : "1px solid rgba(30,41,59,0.5)" }}>
           {scenario.affected_systems.map((sys, i) => (
             <span key={i} style={{
               fontSize: 10, padding: "3px 8px", borderRadius: 6,
@@ -315,9 +360,10 @@ export default function RiskSimulationView({ risk, onBack }) {
     setErrorMsg("");
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('grc_token');
       const riskId = risk.id || risk.riskId;
-      const response = await fetch(`/api/v1/risks/${riskId}/simulate`, {
+      const apiBase = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${apiBase}/v1/risks/${riskId}/simulate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

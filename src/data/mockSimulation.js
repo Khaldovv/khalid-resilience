@@ -1,34 +1,64 @@
 // ─── Mock Simulation Data ─────────────────────────────────────────────────────
-// Used when the Anthropic API is not connected (demo / dev mode)
+// Used when the AI API is not connected (demo / dev mode)
+// Enhanced with multi-dimensional impact types
 
 export const mockSimulationResult = (risk) => ({
   confidence_score: 0.87,
+  saudi_context_ar: 'وفقاً لتقارير NCA الأخيرة، شهدت المنظمات السعودية زيادة بنسبة 35% في الحوادث السيبرانية خلال 2025. هذا النوع من المخاطر يتوافق مع أنماط الهجمات المرصودة في القطاعات الحيوية.',
+  saudi_context_en: 'According to recent NCA reports, Saudi organizations saw a 35% increase in cyber incidents during 2025. This risk type aligns with attack patterns observed in critical sectors.',
   scenario_best: {
     narrative_ar: `في أفضل السيناريوهات لخطر "${risk.riskName || risk.risk_name || ''}"، يتم اكتشاف المؤشرات المبكرة بواسطة نظام المراقبة وتفعيل إجراءات الاحتواء خلال الساعات الأولى. تأثير محدود على الأنظمة الثانوية فقط دون تأثر الخدمات الرئيسية.`,
     narrative_en: `In the best case scenario for "${risk.riskName || risk.risk_name || ''}", early indicators are detected by the monitoring system and containment procedures activate within the first hours. Limited impact on secondary systems only without affecting main services.`,
     probability_pct: 25,
     financial_impact_sar: 500000,
+    operational_impact_ar: 'تأثير محدود على العمليات الثانوية. الخدمات الأساسية تستمر بالعمل دون انقطاع.',
+    operational_impact_en: 'Limited impact on secondary operations. Core services continue without disruption.',
+    reputational_impact_ar: 'لا يوجد تأثير ملموس على السمعة. المعالجة تمت قبل أن يلاحظها أي طرف خارجي.',
+    reputational_impact_en: 'No noticeable reputational impact. Issue resolved before any external parties noticed.',
+    regulatory_impact_ar: 'لا تستدعي إبلاغ الجهات التنظيمية. المعالجة ضمن الإطار الزمني المقبول وفق NCA ECC.',
+    regulatory_impact_en: 'No regulatory reporting required. Resolution within acceptable NCA ECC timeframe.',
+    human_impact_ar: 'لا يوجد تأثير على الموظفين. لم تتأثر أي بيانات شخصية.',
+    human_impact_en: 'No employee impact. No personal data affected.',
     timeline_days: 3,
     affected_systems: ['نظام المراقبة الثانوي'],
     severity: 'LOW',
+    recovery_time_hours: 4,
   },
   scenario_likely: {
     narrative_ar: `السيناريو الأرجح يتضمن تحقق الخطر خلال الأسبوعين الأولين مع تأثر عدد من الأنظمة الحيوية. يستدعي تفعيل خطة الاستجابة للحوادث وإبلاغ الجهات التنظيمية المعنية. التعافي يستغرق 10-14 يوماً.`,
     narrative_en: `The most likely scenario involves risk materialization within the first 2 weeks with impact on several critical systems. Requires incident response activation and regulatory notification. Recovery takes 10-14 days.`,
     probability_pct: 50,
     financial_impact_sar: 2500000,
+    operational_impact_ar: 'توقف جزئي في العمليات لمدة 48-72 ساعة. الأنظمة الأساسية تعمل بطاقة مخفضة (60%). تأخير في المعاملات المالية.',
+    operational_impact_en: 'Partial operations disruption for 48-72 hours. Core systems running at reduced capacity (60%). Financial transaction delays.',
+    reputational_impact_ar: 'تغطية إعلامية محدودة. قد يؤثر على ثقة العملاء المباشرين. يستوجب بيان رسمي.',
+    reputational_impact_en: 'Limited media coverage. May affect direct client trust. Official statement required.',
+    regulatory_impact_ar: 'يستوجب إبلاغ NCA خلال 24 ساعة وفق ضوابط الأمن السيبراني. قد تفرض SAMA إجراءات تصحيحية.',
+    regulatory_impact_en: 'NCA notification required within 24 hours per cybersecurity controls. SAMA may impose corrective actions.',
+    human_impact_ar: 'تأثر 50-100 موظف بتعطل الأنظمة. احتمال تسريب بيانات شخصية لعدد محدود من الأفراد.',
+    human_impact_en: '50-100 employees affected by system downtime. Potential personal data exposure for a limited number of individuals.',
     timeline_days: 14,
     affected_systems: ['خوادم قواعد البيانات الرئيسية', 'البوابة الإلكترونية'],
     severity: 'HIGH',
+    recovery_time_hours: 72,
   },
   scenario_worst: {
     narrative_ar: `أسوأ سيناريو: تحقق الخطر مع انتشار سريع قبل الاكتشاف، مما يؤدي إلى توقف شامل للخدمات الرئيسية لأكثر من 72 ساعة. تأثيرات قانونية وتنظيمية كبيرة، تسريب محتمل للبيانات الحساسة، وأضرار في السمعة.`,
     narrative_en: `Worst case: Risk materializes with rapid spread before detection, causing complete outage of main services for 72+ hours. Major legal and regulatory implications, potential sensitive data leak, reputational damage.`,
     probability_pct: 25,
     financial_impact_sar: 8500000,
+    operational_impact_ar: 'توقف شامل لجميع الخدمات لأكثر من 72 ساعة. فقدان كامل للبيانات غير المنسوخة. تأثير على سلسلة التوريد.',
+    operational_impact_en: 'Complete shutdown of all services for 72+ hours. Total loss of unbacked data. Supply chain impact.',
+    reputational_impact_ar: 'تغطية إعلامية واسعة. خسارة عقود رئيسية. تراجع حاد في مؤشر ثقة العملاء. قد يستغرق استعادة السمعة 6-12 شهراً.',
+    reputational_impact_en: 'Extensive media coverage. Loss of major contracts. Sharp decline in customer trust index. Reputation recovery may take 6-12 months.',
+    regulatory_impact_ar: 'مخالفة لضوابط NCA ECC-1. غرامات محتملة من SAMA تصل إلى 5 مليون ريال. تحقيق من هيئة حماية البيانات (SDAIA). تعليق محتمل للتراخيص.',
+    regulatory_impact_en: 'NCA ECC-1 control violations. Potential SAMA fines up to SAR 5M. SDAIA data protection investigation. Possible license suspension.',
+    human_impact_ar: 'تسريب بيانات 10,000+ عميل/موظف. ضغط نفسي على فريق الاستجابة. احتمال فقدان وظائف.',
+    human_impact_en: '10,000+ customer/employee data leaked. Psychological stress on response team. Potential job losses.',
     timeline_days: 45,
     affected_systems: ['جميع الأنظمة الأساسية', 'قاعدة بيانات العملاء', 'أنظمة التشغيل'],
     severity: 'CRITICAL',
+    recovery_time_hours: 168,
   },
   mitigation_strategies: [
     {
@@ -41,6 +71,7 @@ export const mockSimulationResult = (risk) => ({
       risk_reduction_pct: 35,
       responsible_role: 'CISO',
       implementation_steps: ['اختيار حل SIEM المناسب', 'تكوين قواعد الكشف المخصصة', 'تدريب فريق الاستجابة', 'الاختبار والتشغيل الفعلي'],
+      saudi_regulation_reference: 'NCA ECC 2-3-1: متطلبات رصد الأحداث الأمنية',
     },
     {
       title_ar: 'تعزيز النسخ الاحتياطية والتعافي',
@@ -52,6 +83,7 @@ export const mockSimulationResult = (risk) => ({
       risk_reduction_pct: 25,
       responsible_role: 'IT_SECURITY',
       implementation_steps: ['تقييم حل النسخ الاحتياطي الحالي', 'تطبيق استراتيجية 3-2-1', 'جدولة اختبارات استعادة شهرية', 'توثيق الإجراءات'],
+      saudi_regulation_reference: 'SAMA BCM 4.2: متطلبات النسخ الاحتياطي والتعافي',
     },
     {
       title_ar: 'برنامج توعية وتدريب الموظفين',
@@ -63,6 +95,7 @@ export const mockSimulationResult = (risk) => ({
       risk_reduction_pct: 15,
       responsible_role: 'DEPT_HEAD',
       implementation_steps: ['تصميم المنهج التدريبي', 'اختيار منصة المحاكاة', 'التنفيذ الربع سنوي', 'قياس الفعالية'],
+      saudi_regulation_reference: 'NCA ECC 1-4: التوعية والتدريب الأمني',
     },
     {
       title_ar: 'تحديث خطة الاستجابة للحوادث',
@@ -74,6 +107,7 @@ export const mockSimulationResult = (risk) => ({
       risk_reduction_pct: 20,
       responsible_role: 'BC_COORDINATOR',
       implementation_steps: ['مراجعة الخطة الحالية', 'إضافة السيناريوهات الجديدة', 'تمرين محاكاة شامل', 'توثيق الدروس المستفادة'],
+      saudi_regulation_reference: 'NDMO 3.1: متطلبات خطط الاستجابة والتعافي',
     },
   ],
 });

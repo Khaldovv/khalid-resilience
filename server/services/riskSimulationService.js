@@ -3,7 +3,11 @@ const aiService = require('./ai/aiService');
 
 /**
  * Simulate risk scenarios using AI (OpenRouter).
- * Falls back gracefully if API key is not configured.
+ * Enhanced with:
+ * - Multi-dimensional impact (financial, operational, reputational, regulatory, human)
+ * - Saudi Arabia context (NCA, SAMA, NDMO, sector-specific data)
+ * - Department-aware analysis
+ * - BIA-linked dependency chain impact
  */
 async function simulateRisk(riskId, userId) {
   const risk = await db('risks').where('id', riskId).first();
@@ -29,51 +33,109 @@ async function simulateRisk(riskId, userId) {
     // Tables may not exist yet
   }
 
-  const prompt = `You are an Enterprise Risk Management analyst for a Saudi Arabian organization.
-Generate 3 scenarios for this SPECIFIC risk. CRITICAL RULES:
-1. Use ONLY the data provided below. Do NOT invent systems or impacts.
-2. All amounts in SAR, proportional to residual score ${risk.residual_score}/25.
-3. Scenarios must reference the actual department and systems listed.
-4. Probabilities must sum to ~100%.
-5. Respond in BOTH Arabic and English.
+  // Get similar risks in the same category for context
+  let similarRisks = [];
+  try {
+    similarRisks = await db('risks')
+      .where('risk_type', risk.risk_type)
+      .where('is_archived', false)
+      .whereNot('id', riskId)
+      .orderBy('inherent_score', 'desc')
+      .limit(5)
+      .select('id', 'risk_name', 'inherent_score', 'residual_score', 'lifecycle_status', 'response_type');
+  } catch { /* ignore */ }
 
-RISK:
-- ID: ${risk.id}
-- Name: ${risk.risk_name}
-- Description: ${risk.description}
-- Type: ${risk.risk_type}
-- Department: ${department?.name_ar || 'N/A'}
-- Inherent Score: ${risk.inherent_score}/25 (${risk.inherent_level})
-- Residual Score: ${risk.residual_score}/25 (${risk.residual_level})
-- Current Mitigation: ${risk.mitigation_plan || 'None'}
+  const prompt = `أنت محلل مخاطر مؤسسية متخصص في البيئة السعودية (NCA ECC، SAMA BCM، NDMO).
+قم بتحليل الخطر التالي وإنشاء محاكاة شاملة للسيناريوهات المحتملة.
 
-EXISTING TREATMENTS:
-${treatments.map(t => `- [${t.treatment_type}] ${t.description} — ${t.completion_pct}% complete`).join('\n') || 'None'}
+## تعليمات مهمة:
+1. استخدم البيانات المقدمة فقط. لا تخترع أنظمة أو تأثيرات غير مذكورة.
+2. جميع المبالغ بالريال السعودي (SAR)، متناسبة مع درجة الخطر المتبقي ${risk.residual_score || risk.inherent_score}/25.
+3. السيناريوهات يجب أن تشير لسياق سعودي فعلي (أنظمة NCA، متطلبات SAMA، معايير NDMO).
+4. الاحتمالات يجب أن يكون مجموعها ~100%.
+5. الرد بالعربية والإنجليزية.
+6. أنواع التأثير المطلوبة: مالي، تشغيلي، سمعة، تنظيمي/قانوني، بشري.
+7. ابحث في السياق السعودي عن حوادث مشابهة لهذا النوع من المخاطر.
 
-LINKED CRITICAL PROCESSES:
-${linkedBIA.map(p => `- ${p.process_name} (${p.criticality_level}, RTO: ${p.rto_hours}h)`).join('\n') || 'None'}
+## بيانات الخطر:
+- المعرف: ${risk.id}
+- الاسم: ${risk.risk_name}
+- الوصف: ${risk.description || 'غير محدد'}
+- النوع: ${risk.risk_type}
+- الإدارة: ${department?.name_ar || department?.name_en || 'غير محدد'}
+- الدرجة الأصلية: ${risk.inherent_score}/25 (${risk.inherent_level})
+- الاحتمالية الأصلية: ${risk.inherent_likelihood}/5
+- الأثر الأصلي: ${risk.inherent_impact}/5
+- الدرجة المتبقية: ${risk.residual_score || 'غير محسوبة'}/25 (${risk.residual_level || 'N/A'})
+- الاحتمالية المتبقية: ${risk.residual_likelihood || 'N/A'}/5
+- الأثر المتبقي: ${risk.residual_impact || 'N/A'}/5
+- نوع الاستجابة: ${risk.response_type || 'غير محدد'}
+- خطة التخفيف الحالية: ${risk.mitigation_plan || 'لا يوجد'}
+- حالة دورة الحياة: ${risk.lifecycle_status}
 
-DEPENDENCIES AT RISK:
-${dependencies.map(d => `- [${d.dependency_type}] ${d.resource_name} (${d.criticality}, Alternative: ${d.has_alternative ? 'Yes' : 'NO - SPOF'})`).join('\n') || 'None'}`;
+## المعالجات الحالية:
+${treatments.map(t => `- [${t.treatment_type}] ${t.description} — ${t.completion_pct || 0}% مكتمل`).join('\n') || 'لا توجد معالجات'}
+
+## العمليات الحرجة المرتبطة:
+${linkedBIA.map(p => `- ${p.process_name} (${p.criticality_level}, RTO: ${p.rto_hours}h, MTPD: ${p.mtpd_hours || 'N/A'}h)`).join('\n') || 'لا توجد عمليات مرتبطة'}
+
+## التبعيات المعرضة للخطر:
+${dependencies.map(d => `- [${d.dependency_type}] ${d.resource_name} (${d.criticality}, بديل: ${d.has_alternative ? 'نعم' : 'لا - SPOF'})`).join('\n') || 'لا توجد تبعيات'}
+
+## مخاطر مشابهة في المنظمة:
+${similarRisks.map(r => `- ${r.id}: ${r.risk_name} (أصلي: ${r.inherent_score}, متبقي: ${r.residual_score || 'N/A'}, حالة: ${r.lifecycle_status})`).join('\n') || 'لا توجد مخاطر مشابهة'}`;
 
   const schema = {
     confidence_score: 0.85,
+    saudi_context_ar: 'string — سياق سعودي من حوادث أو أنظمة مشابهة',
+    saudi_context_en: 'string — Saudi context from similar incidents or regulations',
     scenario_best: {
       narrative_ar: 'string', narrative_en: 'string',
-      probability_pct: 25, financial_impact_sar: 0,
+      probability_pct: 25,
+      financial_impact_sar: 0,
+      operational_impact_ar: 'string — وصف التأثير التشغيلي',
+      operational_impact_en: 'string',
+      reputational_impact_ar: 'string — وصف التأثير على السمعة',
+      reputational_impact_en: 'string',
+      regulatory_impact_ar: 'string — المخالفات التنظيمية المحتملة (NCA/SAMA/NDMO)',
+      regulatory_impact_en: 'string',
+      human_impact_ar: 'string — التأثير على الموظفين والأفراد',
+      human_impact_en: 'string',
       timeline_days: 0, affected_systems: [], severity: 'LOW',
+      recovery_time_hours: 0,
     },
     scenario_likely: {
       narrative_ar: 'string', narrative_en: 'string',
-      probability_pct: 50, financial_impact_sar: 0,
+      probability_pct: 50,
+      financial_impact_sar: 0,
+      operational_impact_ar: 'string', operational_impact_en: 'string',
+      reputational_impact_ar: 'string', reputational_impact_en: 'string',
+      regulatory_impact_ar: 'string', regulatory_impact_en: 'string',
+      human_impact_ar: 'string', human_impact_en: 'string',
       timeline_days: 0, affected_systems: [], severity: 'MEDIUM',
+      recovery_time_hours: 0,
     },
     scenario_worst: {
       narrative_ar: 'string', narrative_en: 'string',
-      probability_pct: 25, financial_impact_sar: 0,
+      probability_pct: 25,
+      financial_impact_sar: 0,
+      operational_impact_ar: 'string', operational_impact_en: 'string',
+      reputational_impact_ar: 'string', reputational_impact_en: 'string',
+      regulatory_impact_ar: 'string', regulatory_impact_en: 'string',
+      human_impact_ar: 'string', human_impact_en: 'string',
       timeline_days: 0, affected_systems: [], severity: 'CRITICAL',
+      recovery_time_hours: 0,
     },
-    mitigation_strategies: [],
+    mitigation_strategies: [{
+      title_ar: 'string', title_en: 'string',
+      description_ar: 'string', description_en: 'string',
+      priority: 'IMMEDIATE|SHORT_TERM|LONG_TERM',
+      estimated_cost_sar: 0,
+      risk_reduction_pct: 0,
+      responsible_role: 'CISO|IT_SECURITY|DEPT_HEAD|BC_COORDINATOR|CRO',
+      implementation_steps: ['string'],
+      saudi_regulation_reference: 'string — مرجع من NCA ECC أو SAMA أو NDMO إن وجد',
+    }],
   };
 
   const result = await aiService.generateJSON(prompt, schema, {
