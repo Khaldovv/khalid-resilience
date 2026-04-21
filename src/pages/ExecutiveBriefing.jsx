@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRisks } from "../context/RiskContext";
 import { useIncidents } from "../context/IncidentContext";
@@ -11,11 +11,86 @@ import {
   ChevronRight, Download, Calendar, Activity, ArrowLeft
 } from "lucide-react";
 import {
-  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip,
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
   ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from "recharts";
 
 const RISK_COLORS = { Catastrophic: "#ef4444", High: "#f97316", Medium: "#f59e0b", Low: "#10b981" };
+
+/* ═══ Inject responsive CSS once ═══ */
+const STYLE_ID = "exec-briefing-responsive";
+if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = `
+    .exec-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .exec-charts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .exec-bottom-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .exec-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .exec-action-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .exec-action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    @media (max-width: 900px) {
+      .exec-kpi-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+      }
+      .exec-charts-grid,
+      .exec-bottom-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+      .exec-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .exec-action-banner {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+      .exec-action-buttons {
+        width: 100%;
+      }
+      .exec-action-buttons button {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+    @media (max-width: 500px) {
+      .exec-kpi-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 export default function ExecutiveBriefing() {
   const { language } = useApp();
@@ -24,16 +99,7 @@ export default function ExecutiveBriefing() {
   const { risks } = useRisks();
   const { incidents, loadIncidents } = useIncidents();
   const { vendors, loadVendors } = useVendors();
-
   const [period] = useState("monthly");
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  // Track viewport width for responsive layout
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   // Auto-load incident and vendor data when entering this page
   useEffect(() => {
@@ -73,12 +139,12 @@ export default function ExecutiveBriefing() {
 
   // Compliance radar data
   const complianceData = [
-    { subject: isAr ? "ISO 31000" : "ISO 31000", score: 87, fullMark: 100 },
-    { subject: isAr ? "ISO 22301" : "ISO 22301", score: 82, fullMark: 100 },
-    { subject: isAr ? "NCA ECC" : "NCA ECC", score: 91, fullMark: 100 },
-    { subject: isAr ? "SAMA BCM" : "SAMA BCM", score: 78, fullMark: 100 },
-    { subject: isAr ? "مؤشر صمود" : "Sumood", score: 80, fullMark: 100 },
-    { subject: isAr ? "PDPL" : "PDPL", score: 75, fullMark: 100 },
+    { subject: "ISO 31000", score: 87, fullMark: 100 },
+    { subject: "ISO 22301", score: 82, fullMark: 100 },
+    { subject: "NCA ECC", score: 91, fullMark: 100 },
+    { subject: "SAMA BCM", score: 78, fullMark: 100 },
+    { subject: isAr ? "صمود" : "Sumood", score: 80, fullMark: 100 },
+    { subject: "PDPL", score: 75, fullMark: 100 },
   ];
 
   // Risk department breakdown
@@ -90,149 +156,149 @@ export default function ExecutiveBriefing() {
       deptMap[dept].total++;
       if ((r.inherentScore || r.score || 0) >= 20) deptMap[dept].critical++;
     });
-    return Object.values(deptMap).sort((a, b) => b.total - a.total).slice(0, 8);
+    return Object.values(deptMap).sort((a, b) => b.total - a.total).slice(0, 6);
   }, [risks]);
 
   const t = (en, ar) => isAr ? ar : en;
 
+  // ── StatCard ────────────────────────────────────────────────────────────
   const StatCard = ({ label, value, subValue, icon: Icon, color, trend }) => (
     <div style={{
       background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)",
-      borderRadius: 16, padding: isMobile ? "14px 14px" : "20px 20px",
-      position: "relative", overflow: "hidden", minWidth: 0,
+      borderRadius: 16, padding: "16px", position: "relative", overflow: "hidden", minWidth: 0,
     }}>
       <div style={{ position: "absolute", top: -10, [isAr ? "left" : "right"]: -10, opacity: 0.06 }}>
-        <Icon size={isMobile ? 50 : 80} />
+        <Icon size={60} />
       </div>
       <div style={{
-        display: "flex", alignItems: "center", gap: 6, marginBottom: 6,
+        display: "flex", alignItems: "center", gap: 6, marginBottom: 8,
         flexDirection: isAr ? "row-reverse" : "row",
       }}>
         <div style={{
-          width: isMobile ? 28 : 36, height: isMobile ? 28 : 36, borderRadius: 8,
+          width: 30, height: 30, borderRadius: 8,
           background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
         }}>
-          <Icon size={isMobile ? 14 : 18} style={{ color }} />
+          <Icon size={15} style={{ color }} />
         </div>
         <span style={{
-          fontSize: isMobile ? 9 : 11, color: "#94a3b8", fontWeight: 600,
-          textTransform: "uppercase", letterSpacing: "0.5px",
+          fontSize: 10, color: "#94a3b8", fontWeight: 600,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>{label}</span>
       </div>
       <div style={{
-        fontSize: isMobile ? 22 : 32, fontWeight: 900, color: "#f1f5f9",
-        fontFamily: "monospace", direction: "ltr",
+        fontSize: 28, fontWeight: 900, color: "#f1f5f9",
+        fontFamily: "monospace", direction: "ltr", textAlign: isAr ? "right" : "left",
       }}>{value}</div>
       {subValue && (
         <div style={{
-          fontSize: isMobile ? 9 : 11, color: "#64748b", marginTop: 4,
+          fontSize: 10, color: "#64748b", marginTop: 4,
           display: "flex", alignItems: "center", gap: 4,
           flexDirection: isAr ? "row-reverse" : "row",
-          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          flexWrap: "wrap",
         }}>
           {trend === "up" && <TrendingUp size={12} style={{ color: "#ef4444", flexShrink: 0 }} />}
           {trend === "down" && <TrendingDown size={12} style={{ color: "#10b981", flexShrink: 0 }} />}
-          {subValue}
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{subValue}</span>
         </div>
       )}
     </div>
   );
 
-  // ── Chart Card wrapper ──────────────────────────────────────────────────
+  // ── ChartCard ───────────────────────────────────────────────────────────
   const ChartCard = ({ title, children }) => (
     <div style={{
       background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)",
-      borderRadius: 16, padding: isMobile ? 14 : 20,
+      borderRadius: 16, padding: 20, minWidth: 0, overflow: "hidden",
     }}>
       <h3 style={{
-        color: "#e2e8f0", fontSize: isMobile ? 13 : 14, fontWeight: 700,
+        color: "#e2e8f0", fontSize: 14, fontWeight: 700,
         margin: "0 0 12px 0", textAlign: isAr ? "right" : "left",
       }}>{title}</h3>
       {children}
     </div>
   );
 
+  // ── Custom Pie Label ────────────────────────────────────────────────────
+  const renderPieLabel = ({ name, value, cx, cy, midAngle, innerRadius, outerRadius }) => {
+    if (value === 0) return null;
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius + 18;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    return (
+      <text x={x} y={y} fill="#94a3b8" textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central" fontSize={10} fontWeight={600}>
+        {value}
+      </text>
+    );
+  };
+
   return (
     <div style={{
-      padding: isMobile ? "16px 12px" : "28px 32px",
-      maxWidth: 1500, margin: "0 auto",
+      padding: "20px 24px", maxWidth: 1500, margin: "0 auto",
       direction: isAr ? "rtl" : "ltr",
     }}>
 
       {/* ═══ Header ═══ */}
-      <div style={{
-        display: "flex", alignItems: isMobile ? "flex-start" : "center",
-        justifyContent: "space-between", marginBottom: isMobile ? 20 : 28,
-        flexDirection: isMobile ? "column" : "row", gap: isMobile ? 12 : 0,
+      <div className="exec-header" style={{
+        marginBottom: 24,
+        flexDirection: isAr ? "row-reverse" : "row",
       }}>
-        <div>
+        <div style={{ textAlign: isAr ? "right" : "left" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: 8, marginBottom: 4,
             flexDirection: isAr ? "row-reverse" : "row",
           }}>
-            <Shield size={isMobile ? 18 : 24} style={{ color: "#06b6d4" }} />
+            <Shield size={20} style={{ color: "#06b6d4" }} />
             <span style={{
-              fontSize: isMobile ? 9 : 10, color: "#64748b", fontFamily: "monospace",
-              letterSpacing: "2px", textTransform: "uppercase",
+              fontSize: 10, color: "#64748b", fontFamily: "monospace",
+              letterSpacing: "1.5px", textTransform: "uppercase",
             }}>
               {t("EXECUTIVE RISK BRIEFING", "الإحاطة التنفيذية للمخاطر")}
             </span>
           </div>
-          <h1 style={{
-            color: "#f1f5f9", fontSize: isMobile ? 18 : 26,
-            fontWeight: 900, margin: 0,
-          }}>
+          <h1 style={{ color: "#f1f5f9", fontSize: 22, fontWeight: 900, margin: 0 }}>
             {t("CEO View — Enterprise Risk Posture", "عرض الرئيس التنفيذي — الوضع المؤسسي للمخاطر")}
           </h1>
-          <p style={{
-            color: "#64748b", fontSize: isMobile ? 10 : 12,
-            marginTop: 4, fontFamily: "monospace",
-          }}>
+          <p style={{ color: "#64748b", fontSize: 11, marginTop: 4, fontFamily: "monospace" }}>
             {t("Generated:", "تاريخ الإنشاء:")} {new Date().toLocaleDateString(isAr ? "ar-SA" : "en-US")} · {t("Period: Monthly", "الفترة: شهري")}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-          <button onClick={async () => {
-            const reportData = risks.map(r => ({
-              id: r.id, name: r.riskName || r.risk_name || r.name,
-              type: r.riskType || r.risk_type || r.category || '',
-              dept: r.department || '', owner: r.owner || '',
-              inherent: r.inherentScore || r.inherent_score || r.score || 0,
-              residual: r.residualScore || r.residual_score || 0,
-              status: r.lifecycleStatus || r.lifecycle_status || '',
-            }));
-            const cols = [
-              { label: isAr ? 'رقم' : 'ID', accessor: 'id' },
-              { label: isAr ? 'الخطر' : 'Risk', accessor: 'name' },
-              { label: isAr ? 'النوع' : 'Type', accessor: 'type' },
-              { label: isAr ? 'الإدارة' : 'Dept', accessor: 'dept' },
-              { label: isAr ? 'الكامن' : 'Inherent', accessor: 'inherent' },
-              { label: isAr ? 'المتبقي' : 'Residual', accessor: 'residual' },
-              { label: isAr ? 'الحالة' : 'Status', accessor: 'status' },
-            ];
-            await exportToPDF(reportData, cols, 'executive-risk-briefing', {
-              title: isAr ? 'الإحاطة التنفيذية للمخاطر' : 'Executive Risk Briefing',
-              orientation: 'landscape',
-            });
-          }} style={{
-            padding: isMobile ? "8px 12px" : "10px 16px", borderRadius: 10,
-            fontSize: isMobile ? 11 : 12, fontWeight: 600,
-            background: "rgba(6,182,212,0.1)", color: "#06b6d4",
-            border: "1px solid rgba(6,182,212,0.3)",
-            cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-          }}>
-            <Download size={14} /> {t("Export PDF", "تصدير PDF")}
-          </button>
-        </div>
+        <button onClick={async () => {
+          const reportData = risks.map(r => ({
+            id: r.id, name: r.riskName || r.risk_name || r.name,
+            type: r.riskType || r.risk_type || r.category || '',
+            dept: r.department || '', owner: r.owner || '',
+            inherent: r.inherentScore || r.inherent_score || r.score || 0,
+            residual: r.residualScore || r.residual_score || 0,
+            status: r.lifecycleStatus || r.lifecycle_status || '',
+          }));
+          const cols = [
+            { label: isAr ? 'رقم' : 'ID', accessor: 'id' },
+            { label: isAr ? 'الخطر' : 'Risk', accessor: 'name' },
+            { label: isAr ? 'النوع' : 'Type', accessor: 'type' },
+            { label: isAr ? 'الإدارة' : 'Dept', accessor: 'dept' },
+            { label: isAr ? 'الكامن' : 'Inherent', accessor: 'inherent' },
+            { label: isAr ? 'المتبقي' : 'Residual', accessor: 'residual' },
+            { label: isAr ? 'الحالة' : 'Status', accessor: 'status' },
+          ];
+          await exportToPDF(reportData, cols, 'executive-risk-briefing', {
+            title: isAr ? 'الإحاطة التنفيذية للمخاطر' : 'Executive Risk Briefing',
+            orientation: 'landscape',
+          });
+        }} style={{
+          padding: "10px 16px", borderRadius: 10, fontSize: 12, fontWeight: 600,
+          background: "rgba(6,182,212,0.1)", color: "#06b6d4",
+          border: "1px solid rgba(6,182,212,0.3)",
+          cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+          whiteSpace: "nowrap", flexShrink: 0,
+        }}>
+          <Download size={14} /> {t("Export PDF", "تصدير PDF")}
+        </button>
       </div>
 
-      {/* ═══ KPI Cards — 2×2 on mobile, 4 cols on desktop ═══ */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
-        gap: isMobile ? 10 : 16, marginBottom: isMobile ? 16 : 24,
-      }}>
+      {/* ═══ KPI Cards — CSS grid auto-adapts ═══ */}
+      <div className="exec-kpi-grid" style={{ marginBottom: 20 }}>
         <StatCard label={t("Total Risks", "إجمالي المخاطر")} value={kpis.totalRisks}
           subValue={t(`${kpis.catastrophic} catastrophic`, `${kpis.catastrophic} كارثية`)}
           icon={BarChart3} color="#06b6d4" trend="up" />
@@ -240,30 +306,29 @@ export default function ExecutiveBriefing() {
           subValue={t(`${kpis.criticalIncidents} critical`, `${kpis.criticalIncidents} حرجة`)}
           icon={AlertTriangle} color="#ef4444" trend={kpis.criticalIncidents > 0 ? "up" : "down"} />
         <StatCard label={t("Mitigation Rate", "معدل التخفيف")} value={`${kpis.mitigationRate}%`}
-          subValue={t(`Inherent ${kpis.avgInherent} → Residual ${kpis.avgResidual}`, `كامن ${kpis.avgInherent} ← متبقي ${kpis.avgResidual}`)}
+          subValue={t(`Inh: ${kpis.avgInherent} → Res: ${kpis.avgResidual}`, `كامن ${kpis.avgInherent} ← متبقي ${kpis.avgResidual}`)}
           icon={Target} color="#10b981" trend="down" />
         <StatCard label={t("Vendor Risk", "مخاطر الموردين")} value={`${kpis.criticalVendors}/${kpis.totalVendors}`}
-          subValue={t("Critical/High tier vendors", "موردون بمستوى حرج/عالي")}
+          subValue={t("Critical/High vendors", "حرج/عالي")}
           icon={Building2} color="#f59e0b" trend={kpis.criticalVendors > 2 ? "up" : "down"} />
       </div>
 
-      {/* ═══ Charts Row — stacked on mobile ═══ */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr",
-        gap: isMobile ? 12 : 16, marginBottom: isMobile ? 16 : 24,
-      }}>
+      {/* ═══ Charts Row — CSS grid auto-adapts ═══ */}
+      <div className="exec-charts-grid" style={{ marginBottom: 20 }}>
 
-        {/* Risk Distribution Pie */}
+        {/* Risk Distribution Pie — use legend instead of labels */}
         <ChartCard title={t("Risk Distribution", "توزيع المخاطر")}>
-          <ResponsiveContainer width="100%" height={isMobile ? 180 : 200}>
+          <ResponsiveContainer width="100%" height={220}>
             <PieChart>
-              <Pie data={kpis.riskBySeverity} cx="50%" cy="50%"
-                outerRadius={isMobile ? 60 : 75} innerRadius={isMobile ? 30 : 40}
-                dataKey="value"
-                label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
+              <Pie data={kpis.riskBySeverity} cx="50%" cy="45%"
+                outerRadius={65} innerRadius={35}
+                dataKey="value" label={renderPieLabel} labelLine={false}>
                 {kpis.riskBySeverity.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
+              <Legend iconType="circle" iconSize={8}
+                wrapperStyle={{ fontSize: 11, paddingTop: 8, direction: isAr ? "rtl" : "ltr" }}
+                formatter={(val) => <span style={{ color: "#94a3b8", marginInlineStart: 4 }}>{val}</span>}
+              />
               <Tooltip contentStyle={{
                 background: "#0f172a", border: "1px solid #334155",
                 borderRadius: 8, color: "#e2e8f0", fontSize: 12,
@@ -274,10 +339,10 @@ export default function ExecutiveBriefing() {
 
         {/* Compliance Radar */}
         <ChartCard title={t("Compliance Posture", "الوضع التنظيمي")}>
-          <ResponsiveContainer width="100%" height={isMobile ? 200 : 200}>
-            <RadarChart data={complianceData}>
+          <ResponsiveContainer width="100%" height={220}>
+            <RadarChart data={complianceData} cx="50%" cy="50%">
               <PolarGrid stroke="#334155" />
-              <PolarAngleAxis dataKey="subject" tick={{ fontSize: isMobile ? 8 : 9, fill: "#94a3b8" }} />
+              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 9, fill: "#94a3b8" }} />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8, fill: "#475569" }} />
               <Radar name="Score" dataKey="score" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} strokeWidth={2} />
             </RadarChart>
@@ -286,12 +351,11 @@ export default function ExecutiveBriefing() {
 
         {/* Department Risk Bar */}
         <ChartCard title={t("Risks by Department", "المخاطر حسب الإدارة")}>
-          <ResponsiveContainer width="100%" height={isMobile ? 200 : 220}>
-            <BarChart data={deptRisks} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={deptRisks} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
               <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: isMobile ? 8 : 9, fill: "#94a3b8" }}
-                width={isMobile ? 80 : 110}
-                tickFormatter={(v) => v.length > (isMobile ? 10 : 14) ? v.substring(0, isMobile ? 10 : 14) + '..' : v} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#94a3b8" }} width={90}
+                tickFormatter={(v) => v.length > 12 ? v.substring(0, 12) + '..' : v} />
               <Tooltip contentStyle={{
                 background: "#0f172a", border: "1px solid #334155",
                 borderRadius: 8, color: "#e2e8f0", fontSize: 12,
@@ -303,27 +367,20 @@ export default function ExecutiveBriefing() {
         </ChartCard>
       </div>
 
-      {/* ═══ Bottom Row — stacked on mobile ═══ */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr",
-        gap: isMobile ? 12 : 16,
-      }}>
+      {/* ═══ Bottom Row — CSS grid auto-adapts ═══ */}
+      <div className="exec-bottom-grid">
 
-        {/* Active Incidents Timeline */}
+        {/* Active Incidents */}
         <div style={{
           background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)",
-          borderRadius: 16, padding: isMobile ? 14 : 20,
+          borderRadius: 16, padding: 20, minWidth: 0,
         }}>
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             marginBottom: 12, flexDirection: isAr ? "row-reverse" : "row",
           }}>
-            <h3 style={{ color: "#e2e8f0", fontSize: isMobile ? 13 : 14, fontWeight: 700, margin: 0 }}>
-              <AlertTriangle size={14} style={{
-                color: "#ef4444", verticalAlign: "middle",
-                marginRight: isAr ? 0 : 6, marginLeft: isAr ? 6 : 0,
-              }} />
+            <h3 style={{ color: "#e2e8f0", fontSize: 14, fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 6, flexDirection: isAr ? "row-reverse" : "row" }}>
+              <AlertTriangle size={14} style={{ color: "#ef4444" }} />
               {t("Active Incidents", "الحوادث النشطة")}
             </h3>
             <span style={{ fontSize: 10, color: "#94a3b8", fontFamily: "monospace" }}>
@@ -332,7 +389,7 @@ export default function ExecutiveBriefing() {
           </div>
           {incidents.filter(i => !["CLOSED", "RESOLVED"].includes(i.status)).slice(0, 5).map(inc => (
             <div key={inc.id} style={{
-              padding: isMobile ? "8px 10px" : "10px 12px", borderRadius: 10, marginBottom: 8,
+              padding: "10px 12px", borderRadius: 10, marginBottom: 8,
               background: "rgba(30,41,59,0.6)",
               border: `1px solid ${inc.severity === "P1_CRITICAL" ? "rgba(239,68,68,0.3)" : "rgba(100,116,139,0.15)"}`,
             }}>
@@ -341,8 +398,8 @@ export default function ExecutiveBriefing() {
                 flexDirection: isAr ? "row-reverse" : "row", gap: 8,
               }}>
                 <span style={{
-                  fontSize: isMobile ? 11 : 12, fontWeight: 700, color: "#e2e8f0",
-                  flex: 1, wordBreak: "break-word",
+                  fontSize: 12, fontWeight: 700, color: "#e2e8f0",
+                  flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}>{inc.title}</span>
                 <span style={{
                   fontSize: 9, padding: "2px 6px", borderRadius: 4, fontWeight: 700,
@@ -370,13 +427,13 @@ export default function ExecutiveBriefing() {
           )}
         </div>
 
-        {/* Top Risks Requiring Attention */}
+        {/* Top Risks */}
         <div style={{
           background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)",
-          borderRadius: 16, padding: isMobile ? 14 : 20,
+          borderRadius: 16, padding: 20, minWidth: 0,
         }}>
           <h3 style={{
-            color: "#e2e8f0", fontSize: isMobile ? 13 : 14, fontWeight: 700,
+            color: "#e2e8f0", fontSize: 14, fontWeight: 700,
             margin: "0 0 12px 0", textAlign: isAr ? "right" : "left",
           }}>
             {t("Top Risks — Executive Attention", "أعلى المخاطر — اهتمام تنفيذي")}
@@ -387,9 +444,8 @@ export default function ExecutiveBriefing() {
             .slice(0, 5)
             .map((r, i) => (
               <div key={r.id} style={{
-                display: "flex", alignItems: "center", gap: isMobile ? 8 : 10,
-                padding: isMobile ? "8px 0" : "10px 0",
-                borderBottom: "1px solid rgba(100,116,139,0.1)",
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 0", borderBottom: "1px solid rgba(100,116,139,0.1)",
                 flexDirection: isAr ? "row-reverse" : "row",
               }}>
                 <span style={{
@@ -400,7 +456,7 @@ export default function ExecutiveBriefing() {
                 }}>{i + 1}</span>
                 <div style={{ flex: 1, textAlign: isAr ? "right" : "left", minWidth: 0 }}>
                   <div style={{
-                    fontSize: isMobile ? 11 : 12, fontWeight: 600, color: "#e2e8f0",
+                    fontSize: 12, fontWeight: 600, color: "#e2e8f0",
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}>{r.riskName || r.description}</div>
                   <div style={{
@@ -409,8 +465,8 @@ export default function ExecutiveBriefing() {
                   }}>{r.department || r.category} · {r.owner}</div>
                 </div>
                 <span style={{
-                  fontSize: isMobile ? 14 : 16, fontWeight: 900, fontFamily: "monospace",
-                  color: (r.inherentScore || r.score || 0) >= 20 ? "#ef4444" : "#f59e0b", flexShrink: 0,
+                  fontSize: 16, fontWeight: 900, fontFamily: "monospace", flexShrink: 0,
+                  color: (r.inherentScore || r.score || 0) >= 20 ? "#ef4444" : "#f59e0b",
                 }}>{r.inherentScore || r.score}</span>
               </div>
             ))}
@@ -419,17 +475,14 @@ export default function ExecutiveBriefing() {
         {/* Vendor Watchlist */}
         <div style={{
           background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)",
-          borderRadius: 16, padding: isMobile ? 14 : 20,
+          borderRadius: 16, padding: 20, minWidth: 0,
         }}>
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             marginBottom: 12, flexDirection: isAr ? "row-reverse" : "row",
           }}>
-            <h3 style={{ color: "#e2e8f0", fontSize: isMobile ? 13 : 14, fontWeight: 700, margin: 0 }}>
-              <Building2 size={14} style={{
-                color: "#f59e0b", verticalAlign: "middle",
-                marginRight: isAr ? 0 : 6, marginLeft: isAr ? 6 : 0,
-              }} />
+            <h3 style={{ color: "#e2e8f0", fontSize: 14, fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 6, flexDirection: isAr ? "row-reverse" : "row" }}>
+              <Building2 size={14} style={{ color: "#f59e0b" }} />
               {t("Vendor Watch List", "قائمة مراقبة الموردين")}
             </h3>
           </div>
@@ -438,7 +491,7 @@ export default function ExecutiveBriefing() {
             .slice(0, 5)
             .map(v => (
               <div key={v.id} style={{
-                padding: isMobile ? "8px 10px" : "10px 12px", borderRadius: 10, marginBottom: 8,
+                padding: "10px 12px", borderRadius: 10, marginBottom: 8,
                 background: "rgba(30,41,59,0.6)",
                 border: `1px solid ${v.latest_risk_tier === "CRITICAL" ? "rgba(239,68,68,0.3)" : "rgba(249,115,22,0.2)"}`,
               }}>
@@ -447,7 +500,7 @@ export default function ExecutiveBriefing() {
                   flexDirection: isAr ? "row-reverse" : "row", gap: 8,
                 }}>
                   <span style={{
-                    fontSize: isMobile ? 11 : 12, fontWeight: 600, color: "#e2e8f0",
+                    fontSize: 12, fontWeight: 600, color: "#e2e8f0",
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                     flex: 1, minWidth: 0,
                   }}>{v.vendor_name}</span>
@@ -476,15 +529,11 @@ export default function ExecutiveBriefing() {
       </div>
 
       {/* ═══ Executive Actions Banner ═══ */}
-      <div style={{
-        marginTop: isMobile ? 16 : 24,
-        padding: isMobile ? "14px 14px" : "16px 24px", borderRadius: 16,
+      <div className="exec-action-banner" style={{
+        marginTop: 20, padding: "16px 20px", borderRadius: 16,
         background: "linear-gradient(135deg, rgba(6,182,212,0.1), rgba(139,92,246,0.1))",
         border: "1px solid rgba(6,182,212,0.2)",
-        display: "flex", alignItems: isMobile ? "flex-start" : "center",
-        justifyContent: "space-between",
-        flexDirection: isMobile ? "column" : isAr ? "row-reverse" : "row",
-        gap: isMobile ? 12 : 0,
+        flexDirection: isAr ? "row-reverse" : "row",
       }}>
         <div style={{
           display: "flex", alignItems: "center", gap: 10,
@@ -492,27 +541,22 @@ export default function ExecutiveBriefing() {
         }}>
           <Activity size={18} style={{ color: "#06b6d4", flexShrink: 0 }} />
           <div style={{ textAlign: isAr ? "right" : "left" }}>
-            <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: "#e2e8f0" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>
               {t("Executive Action Required", "إجراء تنفيذي مطلوب")}
             </div>
-            <div style={{ fontSize: isMobile ? 10 : 11, color: "#94a3b8", lineHeight: 1.4 }}>
+            <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.5 }}>
               {t(
-                `${kpis.catastrophic} catastrophic risks • ${kpis.criticalIncidents} critical incidents • ${kpis.criticalVendors} high-risk vendors require attention`,
-                `${kpis.catastrophic} مخاطر كارثية • ${kpis.criticalIncidents} حوادث حرجة • ${kpis.criticalVendors} موردين عالي الخطورة تتطلب الاهتمام`
+                `${kpis.catastrophic} catastrophic risks • ${kpis.criticalIncidents} critical incidents • ${kpis.criticalVendors} high-risk vendors`,
+                `${kpis.catastrophic} مخاطر كارثية • ${kpis.criticalIncidents} حوادث حرجة • ${kpis.criticalVendors} موردين عالي الخطورة`
               )}
             </div>
           </div>
         </div>
-        <div style={{
-          display: "flex", gap: 8,
-          width: isMobile ? "100%" : "auto",
-          flexShrink: 0,
-        }}>
+        <div className="exec-action-buttons">
           <button onClick={() => navigate('/erm?filter=critical')} style={{
             padding: "8px 14px", borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: "pointer",
             background: "rgba(239,68,68,0.15)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)",
-            display: "flex", alignItems: "center", gap: 4,
-            flex: isMobile ? 1 : "none", justifyContent: "center",
+            display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap",
           }}>
             {t("Review Risks", "مراجعة المخاطر")} <ChevronRight size={12} />
           </button>
@@ -543,8 +587,7 @@ export default function ExecutiveBriefing() {
           }} style={{
             padding: "8px 14px", borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: "pointer",
             background: "rgba(6,182,212,0.15)", color: "#06b6d4", border: "1px solid rgba(6,182,212,0.3)",
-            display: "flex", alignItems: "center", gap: 4,
-            flex: isMobile ? 1 : "none", justifyContent: "center",
+            display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap",
           }}>
             {t("Full Report", "التقرير الكامل")} <Download size={12} />
           </button>
