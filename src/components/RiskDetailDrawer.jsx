@@ -136,94 +136,91 @@ export default function RiskDetailDrawer({ risk, onClose }) {
   // Score color based on /25 scale
   const scoreColor = displayScore >= 20 ? '#ef4444' : displayScore >= 15 ? '#f97316' : displayScore >= 10 ? '#eab308' : displayScore >= 5 ? '#22c55e' : '#94a3b8';
 
+  // ─── Combined audit = local session changes + server audit trail ──────────
+  const combinedAudit = useMemo(() => [...localChanges, ...auditTrail], [localChanges, auditTrail]);
+
   // ─── Dynamic Timeline from audit trail + local changes ──────────────────────
-  const combinedAudit = [...localChanges, ...auditTrail];
   const timeline = useMemo(() => {
-    const entries = [];
+    try {
+      const entries = [];
 
-    // Add initial creation from risk data
-    const creationDate = risk.date || risk.created_at;
-    if (creationDate) {
-      entries.push({
-        time: formatRelativeTime(creationDate, isAr),
-        event: isAr ? 'تم تحديد الخطر' : 'Risk identified',
-        color: '#3b82f6',
-        date: new Date(creationDate.includes('T') ? creationDate : `${creationDate}T09:00:00`),
+      // Add initial creation from risk data
+      const creationDate = risk?.date || risk?.created_at;
+      if (creationDate) {
+        const dateStr = String(creationDate);
+        entries.push({
+          time: formatRelativeTime(dateStr, isAr),
+          event: isAr ? 'تم تحديد الخطر' : 'Risk identified',
+          color: '#3b82f6',
+          date: new Date(dateStr.includes('T') ? dateStr : `${dateStr}T09:00:00`),
+        });
+      }
+
+      // Process audit entries
+      for (const e of combinedAudit) {
+        if (!e || !e.created_at) continue;
+        const entryDate = new Date(e.created_at);
+
+        if (e.field_changed === 'lifecycle_status') {
+          const label = statusLabels[e.new_value];
+          entries.push({
+            time: formatRelativeTime(e.created_at, isAr),
+            event: label ? (isAr ? label.ar : label.en) : (e.new_value || ''),
+            color: e.new_value === 'CLOSED' ? '#10b981' : e.new_value === 'ESCALATED' ? '#ef4444' : e.new_value === 'MONITORED' ? '#06b6d4' : '#f59e0b',
+            date: entryDate,
+          });
+        } else if (e.field_changed === 'residual_score' || e.field_changed === 'inherent_score') {
+          entries.push({
+            time: formatRelativeTime(e.created_at, isAr),
+            event: isAr ? `تحديث الدرجة: ${e.old_value || '—'} → ${e.new_value || '—'}` : `Score: ${e.old_value || '—'} → ${e.new_value || '—'}`,
+            color: '#f59e0b',
+            date: entryDate,
+          });
+        } else if (e.field_changed === 'mitigation_plan') {
+          entries.push({
+            time: formatRelativeTime(e.created_at, isAr),
+            event: isAr ? 'تحديث خطة التخفيف' : 'Mitigation plan updated',
+            color: '#06b6d4',
+            date: entryDate,
+          });
+        } else if (e.action === 'UPDATE' && e.field_changed) {
+          const fieldLabel = fieldNameTranslations[e.field_changed];
+          entries.push({
+            time: formatRelativeTime(e.created_at, isAr),
+            event: isAr ? `تعديل: ${fieldLabel?.ar || e.field_changed}` : `Updated: ${fieldLabel?.en || e.field_changed}`,
+            color: '#8b5cf6',
+            date: entryDate,
+          });
+        }
+      }
+
+      // Add current state
+      const currentStatus = risk?.lifecycleStatus || risk?.lifecycle_status || risk?.status;
+      const currentLabel = statusLabels[currentStatus];
+      if (currentLabel) {
+        entries.push({
+          time: isAr ? 'الآن' : 'Now',
+          event: isAr ? currentLabel.ar : currentLabel.en,
+          color: '#10b981',
+          date: new Date(),
+        });
+      }
+
+      // Sort by date, remove duplicates
+      entries.sort((a, b) => a.date - b.date);
+      const seen = new Set();
+      return entries.filter(e => {
+        const key = `${e.event}-${e.time}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
       });
+    } catch (err) {
+      console.error('[Timeline] Error building timeline:', err);
+      return [
+        { time: isAr ? 'الآن' : 'Now', event: isAr ? 'مراقبة نشطة' : 'Active monitoring', color: '#10b981' },
+      ];
     }
-
-    // Add lifecycle status transitions from audit trail
-    const statusChanges = combinedAudit.filter(e => e.field_changed === 'lifecycle_status');
-    statusChanges.forEach(e => {
-      const statusKey = e.new_value;
-      const label = statusLabels[statusKey];
-      entries.push({
-        time: formatRelativeTime(e.created_at, isAr),
-        event: label ? (isAr ? label.ar : label.en) : e.new_value,
-        color: statusKey === 'CLOSED' ? '#10b981' : statusKey === 'ESCALATED' || statusKey === 'Escalated' ? '#ef4444' : statusKey === 'MONITORED' ? '#06b6d4' : '#f59e0b',
-        date: new Date(e.created_at),
-      });
-    });
-
-    // Add score changes
-    const scoreChanges = combinedAudit.filter(e => e.field_changed === 'residual_score' || e.field_changed === 'inherent_score');
-    scoreChanges.forEach(e => {
-      entries.push({
-        time: formatRelativeTime(e.created_at, isAr),
-        event: isAr ? `تحديث الدرجة: ${e.old_value} → ${e.new_value}` : `Score update: ${e.old_value} → ${e.new_value}`,
-        color: '#f59e0b',
-        date: new Date(e.created_at),
-      });
-    });
-
-    // Add mitigation changes
-    const mitigationChanges = combinedAudit.filter(e => e.field_changed === 'mitigation_plan');
-    mitigationChanges.forEach(e => {
-      entries.push({
-        time: formatRelativeTime(e.created_at, isAr),
-        event: isAr ? 'تحديث خطة التخفيف' : 'Mitigation plan updated',
-        color: '#06b6d4',
-        date: new Date(e.created_at),
-      });
-    });
-
-    // Add other updates
-    const otherChanges = combinedAudit.filter(e =>
-      e.action === 'UPDATE' &&
-      !['lifecycle_status', 'residual_score', 'inherent_score', 'mitigation_plan'].includes(e.field_changed)
-    );
-    otherChanges.forEach(e => {
-      const fieldLabel = fieldNameTranslations[e.field_changed];
-      entries.push({
-        time: formatRelativeTime(e.created_at, isAr),
-        event: isAr ? `تعديل: ${fieldLabel?.ar || e.field_changed}` : `Updated: ${fieldLabel?.en || e.field_changed}`,
-        color: '#8b5cf6',
-        date: new Date(e.created_at),
-      });
-    });
-
-    // Add current state
-    const currentStatus = risk.lifecycleStatus || risk.lifecycle_status || risk.status;
-    const currentLabel = statusLabels[currentStatus];
-    if (currentLabel) {
-      entries.push({
-        time: isAr ? 'الآن' : 'Now',
-        event: isAr ? currentLabel.ar : currentLabel.en,
-        color: '#10b981',
-        date: new Date(),
-      });
-    }
-
-    // Sort by date, remove duplicates
-    const sorted = entries.sort((a, b) => a.date - b.date);
-    // Dedupe by event+time
-    const seen = new Set();
-    return sorted.filter(e => {
-      const key = `${e.event}-${e.time}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
   }, [risk, combinedAudit, isAr]);
 
   const tabs = [
