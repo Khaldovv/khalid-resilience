@@ -18,8 +18,22 @@ function calcScore(likelihood, impact) {
   return { score, level: 'Very Low', color: '#22c55e' };
 }
 
-let riskCounter = 5000;
-function nextRiskId() { riskCounter++; return `RSK-${String(riskCounter).padStart(4, '0')}`; }
+let riskCounter = null;
+async function nextRiskId() {
+  if (riskCounter === null) {
+    // Initialize from DB max to survive restarts
+    const result = await db('risks').max('id as max_id').first();
+    const maxId = result?.max_id;
+    if (maxId) {
+      const num = parseInt(maxId.replace('RSK-', ''), 10);
+      riskCounter = isNaN(num) ? 5000 : num;
+    } else {
+      riskCounter = 5000;
+    }
+  }
+  riskCounter++;
+  return `RSK-${String(riskCounter).padStart(4, '0')}`;
+}
 
 /**
  * @swagger
@@ -212,7 +226,7 @@ router.post('/', authorize('MANAGE_RISKS'), async (req, res, next) => {
       }
     }
 
-    const id = nextRiskId();
+    const id = await nextRiskId();
     const risk = {
       id, risk_name: risk_name.trim(), description, risk_type,
       inherent_likelihood: iL, inherent_impact: iI, inherent_score: inherent.score, inherent_level: inherent.level,
