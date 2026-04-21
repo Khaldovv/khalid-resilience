@@ -26,6 +26,14 @@ export default function ExecutiveBriefing() {
   const { vendors, loadVendors } = useVendors();
 
   const [period] = useState("monthly");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Track viewport width for responsive layout
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Auto-load incident and vendor data when entering this page
   useEffect(() => {
@@ -90,48 +98,101 @@ export default function ExecutiveBriefing() {
   const StatCard = ({ label, value, subValue, icon: Icon, color, trend }) => (
     <div style={{
       background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)",
-      borderRadius: 16, padding: "20px 20px", position: "relative", overflow: "hidden",
+      borderRadius: 16, padding: isMobile ? "14px 14px" : "20px 20px",
+      position: "relative", overflow: "hidden", minWidth: 0,
     }}>
       <div style={{ position: "absolute", top: -10, [isAr ? "left" : "right"]: -10, opacity: 0.06 }}>
-        <Icon size={80} />
+        <Icon size={isMobile ? 50 : 80} />
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexDirection: isAr ? "row-reverse" : "row" }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Icon size={18} style={{ color }} />
+      <div style={{
+        display: "flex", alignItems: "center", gap: 6, marginBottom: 6,
+        flexDirection: isAr ? "row-reverse" : "row",
+      }}>
+        <div style={{
+          width: isMobile ? 28 : 36, height: isMobile ? 28 : 36, borderRadius: 8,
+          background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>
+          <Icon size={isMobile ? 14 : 18} style={{ color }} />
         </div>
-        <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</span>
+        <span style={{
+          fontSize: isMobile ? 9 : 11, color: "#94a3b8", fontWeight: 600,
+          textTransform: "uppercase", letterSpacing: "0.5px",
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}>{label}</span>
       </div>
-      <div style={{ fontSize: 32, fontWeight: 900, color: "#f1f5f9", fontFamily: "monospace", direction: "ltr" }}>{value}</div>
+      <div style={{
+        fontSize: isMobile ? 22 : 32, fontWeight: 900, color: "#f1f5f9",
+        fontFamily: "monospace", direction: "ltr",
+      }}>{value}</div>
       {subValue && (
-        <div style={{ fontSize: 11, color: "#64748b", marginTop: 4, display: "flex", alignItems: "center", gap: 4, flexDirection: isAr ? "row-reverse" : "row" }}>
-          {trend === "up" && <TrendingUp size={12} style={{ color: "#ef4444" }} />}
-          {trend === "down" && <TrendingDown size={12} style={{ color: "#10b981" }} />}
+        <div style={{
+          fontSize: isMobile ? 9 : 11, color: "#64748b", marginTop: 4,
+          display: "flex", alignItems: "center", gap: 4,
+          flexDirection: isAr ? "row-reverse" : "row",
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}>
+          {trend === "up" && <TrendingUp size={12} style={{ color: "#ef4444", flexShrink: 0 }} />}
+          {trend === "down" && <TrendingDown size={12} style={{ color: "#10b981", flexShrink: 0 }} />}
           {subValue}
         </div>
       )}
     </div>
   );
 
-  return (
-    <div style={{ padding: "28px 32px", maxWidth: 1500, margin: "0 auto", direction: isAr ? "rtl" : "ltr" }}>
+  // ── Chart Card wrapper ──────────────────────────────────────────────────
+  const ChartCard = ({ title, children }) => (
+    <div style={{
+      background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)",
+      borderRadius: 16, padding: isMobile ? 14 : 20,
+    }}>
+      <h3 style={{
+        color: "#e2e8f0", fontSize: isMobile ? 13 : 14, fontWeight: 700,
+        margin: "0 0 12px 0", textAlign: isAr ? "right" : "left",
+      }}>{title}</h3>
+      {children}
+    </div>
+  );
 
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+  return (
+    <div style={{
+      padding: isMobile ? "16px 12px" : "28px 32px",
+      maxWidth: 1500, margin: "0 auto",
+      direction: isAr ? "rtl" : "ltr",
+    }}>
+
+      {/* ═══ Header ═══ */}
+      <div style={{
+        display: "flex", alignItems: isMobile ? "flex-start" : "center",
+        justifyContent: "space-between", marginBottom: isMobile ? 20 : 28,
+        flexDirection: isMobile ? "column" : "row", gap: isMobile ? 12 : 0,
+      }}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, flexDirection: isAr ? "row-reverse" : "row" }}>
-            <Shield size={24} style={{ color: "#06b6d4" }} />
-            <span style={{ fontSize: 10, color: "#64748b", fontFamily: "monospace", letterSpacing: "2px", textTransform: "uppercase" }}>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8, marginBottom: 4,
+            flexDirection: isAr ? "row-reverse" : "row",
+          }}>
+            <Shield size={isMobile ? 18 : 24} style={{ color: "#06b6d4" }} />
+            <span style={{
+              fontSize: isMobile ? 9 : 10, color: "#64748b", fontFamily: "monospace",
+              letterSpacing: "2px", textTransform: "uppercase",
+            }}>
               {t("EXECUTIVE RISK BRIEFING", "الإحاطة التنفيذية للمخاطر")}
             </span>
           </div>
-          <h1 style={{ color: "#f1f5f9", fontSize: 26, fontWeight: 900, margin: 0 }}>
+          <h1 style={{
+            color: "#f1f5f9", fontSize: isMobile ? 18 : 26,
+            fontWeight: 900, margin: 0,
+          }}>
             {t("CEO View — Enterprise Risk Posture", "عرض الرئيس التنفيذي — الوضع المؤسسي للمخاطر")}
           </h1>
-          <p style={{ color: "#64748b", fontSize: 12, marginTop: 4, fontFamily: "monospace" }}>
+          <p style={{
+            color: "#64748b", fontSize: isMobile ? 10 : 12,
+            marginTop: 4, fontFamily: "monospace",
+          }}>
             {t("Generated:", "تاريخ الإنشاء:")} {new Date().toLocaleDateString(isAr ? "ar-SA" : "en-US")} · {t("Period: Monthly", "الفترة: شهري")}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
           <button onClick={async () => {
             const reportData = risks.map(r => ({
               id: r.id, name: r.riskName || r.risk_name || r.name,
@@ -155,8 +216,10 @@ export default function ExecutiveBriefing() {
               orientation: 'landscape',
             });
           }} style={{
-            padding: "10px 16px", borderRadius: 10, fontSize: 12, fontWeight: 600,
-            background: "rgba(6,182,212,0.1)", color: "#06b6d4", border: "1px solid rgba(6,182,212,0.3)",
+            padding: isMobile ? "8px 12px" : "10px 16px", borderRadius: 10,
+            fontSize: isMobile ? 11 : 12, fontWeight: 600,
+            background: "rgba(6,182,212,0.1)", color: "#06b6d4",
+            border: "1px solid rgba(6,182,212,0.3)",
             cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
           }}>
             <Download size={14} /> {t("Export PDF", "تصدير PDF")}
@@ -164,8 +227,12 @@ export default function ExecutiveBriefing() {
         </div>
       </div>
 
-      {/* KPI Cards Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+      {/* ═══ KPI Cards — 2×2 on mobile, 4 cols on desktop ═══ */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
+        gap: isMobile ? 10 : 16, marginBottom: isMobile ? 16 : 24,
+      }}>
         <StatCard label={t("Total Risks", "إجمالي المخاطر")} value={kpis.totalRisks}
           subValue={t(`${kpis.catastrophic} catastrophic`, `${kpis.catastrophic} كارثية`)}
           icon={BarChart3} color="#06b6d4" trend="up" />
@@ -180,84 +247,114 @@ export default function ExecutiveBriefing() {
           icon={Building2} color="#f59e0b" trend={kpis.criticalVendors > 2 ? "up" : "down"} />
       </div>
 
-      {/* Charts Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }}>
+      {/* ═══ Charts Row — stacked on mobile ═══ */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr",
+        gap: isMobile ? 12 : 16, marginBottom: isMobile ? 16 : 24,
+      }}>
 
         {/* Risk Distribution Pie */}
-        <div style={{ background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)", borderRadius: 16, padding: 20 }}>
-          <h3 style={{ color: "#e2e8f0", fontSize: 14, fontWeight: 700, margin: "0 0 16px 0", textAlign: isAr ? "right" : "left" }}>
-            {t("Risk Distribution", "توزيع المخاطر")}
-          </h3>
-          <ResponsiveContainer width="100%" height={200}>
+        <ChartCard title={t("Risk Distribution", "توزيع المخاطر")}>
+          <ResponsiveContainer width="100%" height={isMobile ? 180 : 200}>
             <PieChart>
-              <Pie data={kpis.riskBySeverity} cx="50%" cy="50%" outerRadius={75} innerRadius={40} dataKey="value"
+              <Pie data={kpis.riskBySeverity} cx="50%" cy="50%"
+                outerRadius={isMobile ? 60 : 75} innerRadius={isMobile ? 30 : 40}
+                dataKey="value"
                 label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
                 {kpis.riskBySeverity.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
-              <Tooltip contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 8, color: "#e2e8f0", fontSize: 12 }} />
+              <Tooltip contentStyle={{
+                background: "#0f172a", border: "1px solid #334155",
+                borderRadius: 8, color: "#e2e8f0", fontSize: 12,
+              }} />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
         {/* Compliance Radar */}
-        <div style={{ background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)", borderRadius: 16, padding: 20 }}>
-          <h3 style={{ color: "#e2e8f0", fontSize: 14, fontWeight: 700, margin: "0 0 16px 0", textAlign: isAr ? "right" : "left" }}>
-            {t("Compliance Posture", "الوضع التنظيمي")}
-          </h3>
-          <ResponsiveContainer width="100%" height={200}>
+        <ChartCard title={t("Compliance Posture", "الوضع التنظيمي")}>
+          <ResponsiveContainer width="100%" height={isMobile ? 200 : 200}>
             <RadarChart data={complianceData}>
               <PolarGrid stroke="#334155" />
-              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 9, fill: "#94a3b8" }} />
+              <PolarAngleAxis dataKey="subject" tick={{ fontSize: isMobile ? 8 : 9, fill: "#94a3b8" }} />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8, fill: "#475569" }} />
               <Radar name="Score" dataKey="score" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} strokeWidth={2} />
             </RadarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
         {/* Department Risk Bar */}
-        <div style={{ background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)", borderRadius: 16, padding: 20 }}>
-          <h3 style={{ color: "#e2e8f0", fontSize: 14, fontWeight: 700, margin: "0 0 16px 0", textAlign: isAr ? "right" : "left" }}>
-            {t("Risks by Department", "المخاطر حسب الإدارة")}
-          </h3>
-          <ResponsiveContainer width="100%" height={220}>
+        <ChartCard title={t("Risks by Department", "المخاطر حسب الإدارة")}>
+          <ResponsiveContainer width="100%" height={isMobile ? 200 : 220}>
             <BarChart data={deptRisks} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
               <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#94a3b8" }} width={110}
-                tickFormatter={(v) => v.length > 14 ? v.substring(0, 14) + '..' : v} />
-              <Tooltip contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 8, color: "#e2e8f0", fontSize: 12 }} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: isMobile ? 8 : 9, fill: "#94a3b8" }}
+                width={isMobile ? 80 : 110}
+                tickFormatter={(v) => v.length > (isMobile ? 10 : 14) ? v.substring(0, isMobile ? 10 : 14) + '..' : v} />
+              <Tooltip contentStyle={{
+                background: "#0f172a", border: "1px solid #334155",
+                borderRadius: 8, color: "#e2e8f0", fontSize: 12,
+              }} />
               <Bar dataKey="total" fill="#06b6d4" radius={[0, 4, 4, 0]} name={t("Total", "إجمالي")} />
               <Bar dataKey="critical" fill="#ef4444" radius={[0, 4, 4, 0]} name={t("Critical", "حرجة")} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
       </div>
 
-      {/* Bottom Row: Active Incidents + Top Risks + Vendor Watchlist */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+      {/* ═══ Bottom Row — stacked on mobile ═══ */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr",
+        gap: isMobile ? 12 : 16,
+      }}>
 
         {/* Active Incidents Timeline */}
-        <div style={{ background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)", borderRadius: 16, padding: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexDirection: isAr ? "row-reverse" : "row" }}>
-            <h3 style={{ color: "#e2e8f0", fontSize: 14, fontWeight: 700, margin: 0 }}>
-              <AlertTriangle size={14} style={{ color: "#ef4444", verticalAlign: "middle", marginRight: isAr ? 0 : 6, marginLeft: isAr ? 6 : 0 }} />
+        <div style={{
+          background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)",
+          borderRadius: 16, padding: isMobile ? 14 : 20,
+        }}>
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            marginBottom: 12, flexDirection: isAr ? "row-reverse" : "row",
+          }}>
+            <h3 style={{ color: "#e2e8f0", fontSize: isMobile ? 13 : 14, fontWeight: 700, margin: 0 }}>
+              <AlertTriangle size={14} style={{
+                color: "#ef4444", verticalAlign: "middle",
+                marginRight: isAr ? 0 : 6, marginLeft: isAr ? 6 : 0,
+              }} />
               {t("Active Incidents", "الحوادث النشطة")}
             </h3>
-            <span style={{ fontSize: 10, color: "#94a3b8", fontFamily: "monospace" }}>{kpis.openIncidents} {t("open", "مفتوحة")}</span>
+            <span style={{ fontSize: 10, color: "#94a3b8", fontFamily: "monospace" }}>
+              {kpis.openIncidents} {t("open", "مفتوحة")}
+            </span>
           </div>
           {incidents.filter(i => !["CLOSED", "RESOLVED"].includes(i.status)).slice(0, 5).map(inc => (
             <div key={inc.id} style={{
-              padding: "10px 12px", borderRadius: 10, marginBottom: 8,
-              background: "rgba(30,41,59,0.6)", border: `1px solid ${inc.severity === "P1_CRITICAL" ? "rgba(239,68,68,0.3)" : "rgba(100,116,139,0.15)"}`,
+              padding: isMobile ? "8px 10px" : "10px 12px", borderRadius: 10, marginBottom: 8,
+              background: "rgba(30,41,59,0.6)",
+              border: `1px solid ${inc.severity === "P1_CRITICAL" ? "rgba(239,68,68,0.3)" : "rgba(100,116,139,0.15)"}`,
             }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexDirection: isAr ? "row-reverse" : "row" }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0" }}>{inc.title}</span>
+              <div style={{
+                display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+                flexDirection: isAr ? "row-reverse" : "row", gap: 8,
+              }}>
+                <span style={{
+                  fontSize: isMobile ? 11 : 12, fontWeight: 700, color: "#e2e8f0",
+                  flex: 1, wordBreak: "break-word",
+                }}>{inc.title}</span>
                 <span style={{
                   fontSize: 9, padding: "2px 6px", borderRadius: 4, fontWeight: 700,
                   background: inc.severity === "P1_CRITICAL" ? "rgba(239,68,68,0.15)" : "rgba(249,115,22,0.15)",
                   color: inc.severity === "P1_CRITICAL" ? "#ef4444" : "#f97316",
+                  whiteSpace: "nowrap", flexShrink: 0,
                 }}>{inc.severity?.replace("_", " ")}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, flexDirection: isAr ? "row-reverse" : "row" }}>
+              <div style={{
+                display: "flex", justifyContent: "space-between", marginTop: 6,
+                flexDirection: isAr ? "row-reverse" : "row",
+              }}>
                 <span style={{ fontSize: 10, color: "#64748b", fontFamily: "monospace" }}>{inc.id}</span>
                 <span style={{
                   fontSize: 9, padding: "2px 6px", borderRadius: 4, fontWeight: 600,
@@ -274,8 +371,14 @@ export default function ExecutiveBriefing() {
         </div>
 
         {/* Top Risks Requiring Attention */}
-        <div style={{ background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)", borderRadius: 16, padding: 20 }}>
-          <h3 style={{ color: "#e2e8f0", fontSize: 14, fontWeight: 700, margin: "0 0 16px 0", textAlign: isAr ? "right" : "left" }}>
+        <div style={{
+          background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)",
+          borderRadius: 16, padding: isMobile ? 14 : 20,
+        }}>
+          <h3 style={{
+            color: "#e2e8f0", fontSize: isMobile ? 13 : 14, fontWeight: 700,
+            margin: "0 0 12px 0", textAlign: isAr ? "right" : "left",
+          }}>
             {t("Top Risks — Executive Attention", "أعلى المخاطر — اهتمام تنفيذي")}
           </h3>
           {risks
@@ -284,31 +387,49 @@ export default function ExecutiveBriefing() {
             .slice(0, 5)
             .map((r, i) => (
               <div key={r.id} style={{
-                display: "flex", alignItems: "center", gap: 10, padding: "10px 0",
+                display: "flex", alignItems: "center", gap: isMobile ? 8 : 10,
+                padding: isMobile ? "8px 0" : "10px 0",
                 borderBottom: "1px solid rgba(100,116,139,0.1)",
                 flexDirection: isAr ? "row-reverse" : "row",
               }}>
                 <span style={{
-                  width: 24, height: 24, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center",
-                  background: "rgba(239,68,68,0.15)", color: "#ef4444", fontSize: 11, fontWeight: 900, fontFamily: "monospace",
+                  width: 24, height: 24, borderRadius: 6, display: "flex",
+                  alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  background: "rgba(239,68,68,0.15)", color: "#ef4444",
+                  fontSize: 11, fontWeight: 900, fontFamily: "monospace",
                 }}>{i + 1}</span>
-                <div style={{ flex: 1, textAlign: isAr ? "right" : "left" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{r.riskName || r.description}</div>
-                  <div style={{ fontSize: 10, color: "#64748b" }}>{r.department || r.category} · {r.owner}</div>
+                <div style={{ flex: 1, textAlign: isAr ? "right" : "left", minWidth: 0 }}>
+                  <div style={{
+                    fontSize: isMobile ? 11 : 12, fontWeight: 600, color: "#e2e8f0",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>{r.riskName || r.description}</div>
+                  <div style={{
+                    fontSize: 10, color: "#64748b",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>{r.department || r.category} · {r.owner}</div>
                 </div>
                 <span style={{
-                  fontSize: 16, fontWeight: 900, fontFamily: "monospace",
-                  color: (r.inherentScore || r.score || 0) >= 20 ? "#ef4444" : "#f59e0b"
+                  fontSize: isMobile ? 14 : 16, fontWeight: 900, fontFamily: "monospace",
+                  color: (r.inherentScore || r.score || 0) >= 20 ? "#ef4444" : "#f59e0b", flexShrink: 0,
                 }}>{r.inherentScore || r.score}</span>
               </div>
             ))}
         </div>
 
         {/* Vendor Watchlist */}
-        <div style={{ background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)", borderRadius: 16, padding: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexDirection: isAr ? "row-reverse" : "row" }}>
-            <h3 style={{ color: "#e2e8f0", fontSize: 14, fontWeight: 700, margin: 0 }}>
-              <Building2 size={14} style={{ color: "#f59e0b", verticalAlign: "middle", marginRight: isAr ? 0 : 6, marginLeft: isAr ? 6 : 0 }} />
+        <div style={{
+          background: "rgba(15,23,42,0.8)", border: "1px solid rgba(100,116,139,0.2)",
+          borderRadius: 16, padding: isMobile ? 14 : 20,
+        }}>
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            marginBottom: 12, flexDirection: isAr ? "row-reverse" : "row",
+          }}>
+            <h3 style={{ color: "#e2e8f0", fontSize: isMobile ? 13 : 14, fontWeight: 700, margin: 0 }}>
+              <Building2 size={14} style={{
+                color: "#f59e0b", verticalAlign: "middle",
+                marginRight: isAr ? 0 : 6, marginLeft: isAr ? 6 : 0,
+              }} />
               {t("Vendor Watch List", "قائمة مراقبة الموردين")}
             </h3>
           </div>
@@ -317,18 +438,30 @@ export default function ExecutiveBriefing() {
             .slice(0, 5)
             .map(v => (
               <div key={v.id} style={{
-                padding: "10px 12px", borderRadius: 10, marginBottom: 8,
-                background: "rgba(30,41,59,0.6)", border: `1px solid ${v.latest_risk_tier === "CRITICAL" ? "rgba(239,68,68,0.3)" : "rgba(249,115,22,0.2)"}`,
+                padding: isMobile ? "8px 10px" : "10px 12px", borderRadius: 10, marginBottom: 8,
+                background: "rgba(30,41,59,0.6)",
+                border: `1px solid ${v.latest_risk_tier === "CRITICAL" ? "rgba(239,68,68,0.3)" : "rgba(249,115,22,0.2)"}`,
               }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexDirection: isAr ? "row-reverse" : "row" }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{v.vendor_name}</span>
+                <div style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  flexDirection: isAr ? "row-reverse" : "row", gap: 8,
+                }}>
+                  <span style={{
+                    fontSize: isMobile ? 11 : 12, fontWeight: 600, color: "#e2e8f0",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    flex: 1, minWidth: 0,
+                  }}>{v.vendor_name}</span>
                   <span style={{
                     fontSize: 9, padding: "2px 6px", borderRadius: 4, fontWeight: 700,
                     background: v.latest_risk_tier === "CRITICAL" ? "rgba(239,68,68,0.15)" : "rgba(249,115,22,0.15)",
                     color: v.latest_risk_tier === "CRITICAL" ? "#ef4444" : "#f97316",
+                    whiteSpace: "nowrap", flexShrink: 0,
                   }}>{v.latest_risk_tier}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 10, color: "#64748b", flexDirection: isAr ? "row-reverse" : "row" }}>
+                <div style={{
+                  display: "flex", justifyContent: "space-between", marginTop: 6,
+                  fontSize: 10, color: "#64748b", flexDirection: isAr ? "row-reverse" : "row",
+                }}>
                   <span>{v.category}</span>
                   <span style={{ fontFamily: "monospace" }}>{t("Score:", "الدرجة:")} {v.latest_overall_score}/5.0</span>
                 </div>
@@ -342,21 +475,27 @@ export default function ExecutiveBriefing() {
         </div>
       </div>
 
-      {/* Executive Actions Banner */}
+      {/* ═══ Executive Actions Banner ═══ */}
       <div style={{
-        marginTop: 24, padding: "16px 24px", borderRadius: 16,
+        marginTop: isMobile ? 16 : 24,
+        padding: isMobile ? "14px 14px" : "16px 24px", borderRadius: 16,
         background: "linear-gradient(135deg, rgba(6,182,212,0.1), rgba(139,92,246,0.1))",
         border: "1px solid rgba(6,182,212,0.2)",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexDirection: isAr ? "row-reverse" : "row",
+        display: "flex", alignItems: isMobile ? "flex-start" : "center",
+        justifyContent: "space-between",
+        flexDirection: isMobile ? "column" : isAr ? "row-reverse" : "row",
+        gap: isMobile ? 12 : 0,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexDirection: isAr ? "row-reverse" : "row" }}>
-          <Activity size={18} style={{ color: "#06b6d4" }} />
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10,
+          flexDirection: isAr ? "row-reverse" : "row",
+        }}>
+          <Activity size={18} style={{ color: "#06b6d4", flexShrink: 0 }} />
           <div style={{ textAlign: isAr ? "right" : "left" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>
+            <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: "#e2e8f0" }}>
               {t("Executive Action Required", "إجراء تنفيذي مطلوب")}
             </div>
-            <div style={{ fontSize: 11, color: "#94a3b8" }}>
+            <div style={{ fontSize: isMobile ? 10 : 11, color: "#94a3b8", lineHeight: 1.4 }}>
               {t(
                 `${kpis.catastrophic} catastrophic risks • ${kpis.criticalIncidents} critical incidents • ${kpis.criticalVendors} high-risk vendors require attention`,
                 `${kpis.catastrophic} مخاطر كارثية • ${kpis.criticalIncidents} حوادث حرجة • ${kpis.criticalVendors} موردين عالي الخطورة تتطلب الاهتمام`
@@ -364,11 +503,16 @@ export default function ExecutiveBriefing() {
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{
+          display: "flex", gap: 8,
+          width: isMobile ? "100%" : "auto",
+          flexShrink: 0,
+        }}>
           <button onClick={() => navigate('/erm?filter=critical')} style={{
             padding: "8px 14px", borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: "pointer",
             background: "rgba(239,68,68,0.15)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)",
             display: "flex", alignItems: "center", gap: 4,
+            flex: isMobile ? 1 : "none", justifyContent: "center",
           }}>
             {t("Review Risks", "مراجعة المخاطر")} <ChevronRight size={12} />
           </button>
@@ -400,6 +544,7 @@ export default function ExecutiveBriefing() {
             padding: "8px 14px", borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: "pointer",
             background: "rgba(6,182,212,0.15)", color: "#06b6d4", border: "1px solid rgba(6,182,212,0.3)",
             display: "flex", alignItems: "center", gap: 4,
+            flex: isMobile ? 1 : "none", justifyContent: "center",
           }}>
             {t("Full Report", "التقرير الكامل")} <Download size={12} />
           </button>
