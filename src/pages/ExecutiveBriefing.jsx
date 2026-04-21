@@ -351,11 +351,11 @@ export default function ExecutiveBriefing() {
 
         {/* Department Risk Bar */}
         <ChartCard title={t("Risks by Department", "المخاطر حسب الإدارة")}>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={deptRisks} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={deptRisks} layout="vertical" margin={{ top: 0, right: 16, left: 10, bottom: 0 }}>
               <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#94a3b8" }} width={90}
-                tickFormatter={(v) => v.length > 12 ? v.substring(0, 12) + '..' : v} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} width={130}
+                tickFormatter={(v) => v.length > 15 ? v.substring(0, 15) + '..' : v} />
               <Tooltip contentStyle={{
                 background: "#0f172a", border: "1px solid #334155",
                 borderRadius: 8, color: "#e2e8f0", fontSize: 12,
