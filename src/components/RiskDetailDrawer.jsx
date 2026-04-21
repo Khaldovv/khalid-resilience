@@ -71,6 +71,17 @@ function RiskDetailDrawerInner({ risk, onClose }) {
   const { updateRisk } = useRisks();
   const toast = useToast();
   const isAr = language === "ar";
+
+  // Safe render: ensures no object gets rendered as React child
+  const safe = (val) => {
+    if (val === null || val === undefined) return '';
+    if (typeof val === 'object') {
+      // Handle {en, ar} label objects
+      if (val.en !== undefined || val.ar !== undefined) return val[language] || val.en || val.ar || '';
+      return JSON.stringify(val);
+    }
+    return val;
+  };
   const [visible, setVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [activeView, setActiveView] = useState("details"); // 'details' | 'edit' | 'simulation'
@@ -261,9 +272,9 @@ function RiskDetailDrawerInner({ risk, onClose }) {
 
   // ─── Details Grid items ───────────────────────────────────────────────────
   const detailItems = [
-    { key: "category", label: isAr ? "الفئة" : "Category", value: risk.category || risk.riskType || risk.risk_type || risk.cat },
-    { key: "owner", label: isAr ? "المالك" : "Owner", value: risk.owner },
-    { key: "aiStatus", label: isAr ? "الإجراء الحالي" : "Current Action", value: risk.aiStatus || risk.response_type },
+    { key: "category", label: isAr ? "الفئة" : "Category", value: safe(risk.category || risk.riskType || risk.risk_type || risk.cat) },
+    { key: "owner", label: isAr ? "المالك" : "Owner", value: safe(risk.owner) },
+    { key: "aiStatus", label: isAr ? "الإجراء الحالي" : "Current Action", value: safe(risk.aiStatus || risk.response_type) },
   ];
 
   // ─── Format audit trail date ─────────────────────────────────────────────────
@@ -331,7 +342,7 @@ function RiskDetailDrawerInner({ risk, onClose }) {
                : (isAr ? "تفاصيل الخطر" : "RISK DETAILS")}
             </p>
             <p style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary, #e2e8f0)", marginTop: 4 }}>
-              {String(risk.riskName || risk.risk_name || risk.name || risk.risk || '')}
+              {safe(risk.riskName || risk.risk_name || risk.name || risk.risk || '')}
             </p>
           </div>
           <button
@@ -434,7 +445,7 @@ function RiskDetailDrawerInner({ risk, onClose }) {
                   }}>
                     <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{item.label}</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>
-                      {typeof item.value === 'object' ? JSON.stringify(item.value) : (item.value || "—")}
+                      {safe(item.value) || "—"}
                     </span>
                   </div>
                 ))}
