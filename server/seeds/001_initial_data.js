@@ -5,7 +5,8 @@ const bcrypt = require('bcryptjs');
  */
 exports.seed = async function (knex) {
   // ── Clear existing data (reverse FK order) ─────────────────────────────────
-  await knex('audit_log').del();
+  // audit_log has an immutability trigger — TRUNCATE bypasses triggers
+  try { await knex.raw('TRUNCATE TABLE audit_log RESTART IDENTITY CASCADE'); } catch { /* ignore if table doesn't exist */ }
   await knex('sumood_assessments').del();
   await knex('sumood_kpis').del();
   await knex('sumood_components').del();

@@ -519,13 +519,15 @@ router.post('/demo-login', async (req, res, next) => {
     if (!demoUser) {
       // Auto-create demo user if missing
       const hashedPassword = await bcrypt.hash('DemoUser2026!', 12);
+      // Look up first department UUID (departments use UUID primary keys)
+      const firstDept = await db('departments').select('id').first();
       [demoUser] = await db('users').insert({
         email: 'demo@khalidresilience.com',
         password_hash: hashedPassword,
         full_name_ar: 'مستخدم تجريبي',
         full_name_en: 'Demo User',
         role: 'CISO',
-        department_id: 'DEPT-001',
+        department_id: firstDept ? firstDept.id : null,
         is_active: true,
       }).returning('*');
     }
