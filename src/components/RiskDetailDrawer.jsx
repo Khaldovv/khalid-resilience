@@ -125,13 +125,13 @@ export default function RiskDetailDrawer({ risk, onClose }) {
   if (!risk) return null;
 
   // Compute scores: residual first, then inherent as fallback
-  const residualScore = risk.residualScore || risk.residual_score || 0;
-  const inherentScore = risk.inherentScore || risk.inherent_score || risk.score || 0;
+  const residualScore = Number(risk.residualScore || risk.residual_score) || 0;
+  const inherentScore = Number(risk.inherentScore || risk.inherent_score || risk.score) || 0;
   const displayScore = residualScore > 0 ? residualScore : inherentScore;
   const isResidual = residualScore > 0;
 
   const sev = scoreToSeverity(displayScore);
-  const sevLabel = sev.label[language] || sev.label.en;
+  const sevLabel = String(sev.label[language] || sev.label.en || '');
 
   // Score color based on /25 scale
   const scoreColor = displayScore >= 20 ? '#ef4444' : displayScore >= 15 ? '#f97316' : displayScore >= 10 ? '#eab308' : displayScore >= 5 ? '#22c55e' : '#94a3b8';
@@ -300,7 +300,7 @@ export default function RiskDetailDrawer({ risk, onClose }) {
                : (isAr ? "تفاصيل الخطر" : "RISK DETAILS")}
             </p>
             <p style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary, #e2e8f0)", marginTop: 4 }}>
-              {risk.riskName || risk.risk_name || risk.name || risk.risk}
+              {String(risk.riskName || risk.risk_name || risk.name || risk.risk || '')}
             </p>
           </div>
           <button
@@ -403,7 +403,7 @@ export default function RiskDetailDrawer({ risk, onClose }) {
                   }}>
                     <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{item.label}</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>
-                      {item.value || "—"}
+                      {typeof item.value === 'object' ? JSON.stringify(item.value) : (item.value || "—")}
                     </span>
                   </div>
                 ))}
