@@ -1051,7 +1051,7 @@ const RiskRegisterView = ({ onSelectRisk }) => {
             <tbody>
               {filtered.map((r, i) => (
                 <tr key={r.id}
-                  onClick={() => onSelectRisk && onSelectRisk({ id: r.id, riskId: r.id, name: r.riskName || r.description, riskName: r.riskName || r.description, risk_name: r.riskName || r.description, category: r.category, owner: r.owner, severity: r.inherent || r.inherentLabel, score: r.inherentScore || r.score, delta: r.delta, aiStatus: r.aiStatus })}
+                  onClick={() => onSelectRisk && onSelectRisk(r)}
                   className={`border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors cursor-pointer
                     ${i % 2 === 0 ? "" : "bg-slate-900/20"}`}>
                   {/* Risk ID */}
