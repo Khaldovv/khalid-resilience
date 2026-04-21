@@ -371,11 +371,11 @@ export default function RiskSimulationView({ risk, onBack }) {
         },
       });
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || `Simulation failed (${response.status})`);
+        const errBody = await response.json().catch(() => ({}));
+        throw new Error(errBody.error || `Simulation failed (${response.status})`);
       }
       const saved = await response.json();
-      // Parse the saved simulation result
+      // Parse the saved simulation result (DB stores JSON as strings)
       const result = {
         confidence_score: saved.confidence_score || saved.data?.confidence_score || 0.75,
         scenario_best: typeof saved.scenario_best === 'string' ? JSON.parse(saved.scenario_best) : (saved.scenario_best || saved.data?.scenario_best),
@@ -387,16 +387,8 @@ export default function RiskSimulationView({ risk, onBack }) {
       setState("results");
     } catch (err) {
       console.error('[SIMULATION ERROR]', err);
-      // Fallback to mock data if backend not available
-      try {
-        const { mockSimulationResult } = await import("../../data/mockSimulation");
-        const result = mockSimulationResult(risk);
-        setData(result);
-        setState("results");
-      } catch {
-        setErrorMsg(err.message);
-        setState("error");
-      }
+      setErrorMsg(err.message);
+      setState("error");
     }
   };
 
@@ -488,25 +480,27 @@ export default function RiskSimulationView({ risk, onBack }) {
         isAr={isAr}
       />
 
-      {/* Financial Impact Chart */}
+      {/* Financial Impact Chart — forced LTR for chart rendering */}
       <div style={{ borderRadius: 12, padding: "14px 16px", background: "var(--bg-card, rgba(15,23,42,0.5))", border: "1px solid var(--border-primary, #1e293b)" }}>
-        <p style={{ fontSize: 10, color: "#64748b", fontFamily: "monospace", letterSpacing: "0.1em", marginBottom: 12 }}>
+        <p style={{ fontSize: 10, color: "#64748b", fontFamily: "monospace", letterSpacing: "0.1em", marginBottom: 12, textAlign: isAr ? "right" : "left" }}>
           {isAr ? "مقارنة الأثر المالي (ريال سعودي)" : "FINANCIAL IMPACT COMPARISON (SAR)"}
         </p>
-        <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 30, top: 5, bottom: 5 }}>
-            <XAxis type="number" tick={{ fill: "#64748b", fontSize: 10 }} tickFormatter={(v) => formatSAR(v)} axisLine={false} tickLine={false} />
-            <YAxis type="category" dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} width={60} />
-            <Tooltip
-              formatter={(v) => [`${(v / 1000000).toFixed(2)}M ${isAr ? "ريال" : "SAR"}`, isAr ? "الأثر المالي" : "Financial Impact"]}
-              contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8, fontSize: 11 }}
-              labelStyle={{ color: "#94a3b8" }}
-            />
-            <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={24}>
-              {chartData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div style={{ direction: "ltr" }}>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={chartData} layout="vertical" margin={{ left: 5, right: 35, top: 5, bottom: 5 }}>
+              <XAxis type="number" tick={{ fill: "#64748b", fontSize: 10 }} tickFormatter={(v) => formatSAR(v)} axisLine={false} tickLine={false} />
+              <YAxis type="category" dataKey="name" tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} width={55} />
+              <Tooltip
+                formatter={(v) => [`${(v / 1000000).toFixed(2)}M ${isAr ? "ريال" : "SAR"}`, isAr ? "الأثر المالي" : "Financial Impact"]}
+                contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8, fontSize: 11 }}
+                labelStyle={{ color: "#94a3b8" }}
+              />
+              <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={28}>
+                {chartData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Mitigation Strategies */}

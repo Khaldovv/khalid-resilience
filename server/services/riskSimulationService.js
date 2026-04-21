@@ -1,12 +1,42 @@
 const db = require('../config/database');
 const aiService = require('./ai/aiService');
 
+// ── Department-Specific Personas for simulation context ──────────────────────
+const DEPT_SIMULATION_PERSONAS = {
+  IT: `أنت محلل مخاطر سيبرانية وتقنية في منظمة سعودية. تفهم ضوابط NCA ECC ومتطلبات SAMA للأمن السيبراني.
+خبراتك: أمن الشبكات، حماية البنية التحتية، حوكمة تقنية المعلومات، إدارة الثغرات، التعافي من الكوارث.
+عند المحاكاة، ركز على: البنية التحتية التقنية، الأنظمة المتأثرة، وقت الاستجابة، سلسلة الهجوم.`,
+
+  Finance: `أنت محلل مخاطر مالية ومحاسبية في منظمة سعودية. تفهم متطلبات ZATCA وأنظمة ضريبة القيمة المضافة ومعايير IFRS.
+خبراتك: التقارير المالية، الرقابة الداخلية، مكافحة الاحتيال، إدارة التدفقات النقدية، المراجعة المحاسبية.
+عند المحاكاة، ركز على: الأثر المالي المباشر، الامتثال الضريبي، تعليق العمليات المالية، غرامات الجهات الرقابية.`,
+
+  Operations: `أنت محلل مخاطر تشغيلية وسلاسل إمداد في منظمة سعودية. تفهم ISO 22301 ومتطلبات استمرارية الأعمال.
+خبراتك: إدارة سلاسل الإمداد، الصيانة، السلامة المهنية، ضبط الجودة، التخطيط الإنتاجي.
+عند المحاكاة، ركز على: توقف سلاسل الإمداد، تأثير الإنتاج، السلامة المهنية، الموردين البديلين.`,
+
+  HR: `أنت محلل مخاطر موارد بشرية في منظمة سعودية. تفهم نظام العمل السعودي ومتطلبات التوطين وبرنامج نطاقات وتقييمات مدد.
+خبراتك: الاحتفاظ بالمواهب، معدلات الدوران الوظيفي، تكاليف التوظيف والتدريب، خصوصية بيانات الموظفين، الامتثال لنظام العمل.
+عند المحاكاة، ركز على: تكاليف الاستبدال، فقدان المعرفة المؤسسية، انخفاض الإنتاجية، تأثير نطاقات، معنويات الفريق.`,
+
+  Legal: `أنت محلل مخاطر قانونية في منظمة سعودية. تفهم الأنظمة السعودية ونظام حماية البيانات الشخصية PDPL.
+خبراتك: إدارة العقود، الامتثال التنظيمي، حماية الملكية الفكرية، التقاضي، الاختصاص القضائي.
+عند المحاكاة، ركز على: المخاطر القانونية، الغرامات التنظيمية، الدعاوى المحتملة، مخالفات PDPL.`,
+
+  Compliance: `أنت محلل امتثال ورقابة في منظمة سعودية. تفهم متطلبات NCA، SAMA، DGA، NDMO وأطر الحوكمة.
+خبراتك: جاهزية التدقيق، إدارة السياسات، مكافحة غسل الأموال، الإفصاح، التدريب على الامتثال.
+عند المحاكاة، ركز على: الفجوات التنظيمية، نتائج التدقيق، العقوبات المحتملة، الإجراءات التصحيحية.`,
+};
+
+const DEFAULT_SIMULATION_PERSONA = `أنت محلل مخاطر مؤسسية متخصص في البيئة السعودية. تفهم ISO 31000 ومتطلبات الحوكمة السعودية.
+حلل الخطر المقدم وابنِ سيناريوهات واقعية بناءً على بيانات الخطر الفعلية والسياق التشغيلي للإدارة المعنية.`;
+
 /**
  * Simulate risk scenarios using AI (OpenRouter).
  * Enhanced with:
+ * - Department-specific AI personas for contextual analysis
  * - Multi-dimensional impact (financial, operational, reputational, regulatory, human)
  * - Saudi Arabia context (NCA, SAMA, NDMO, sector-specific data)
- * - Department-aware analysis
  * - BIA-linked dependency chain impact
  */
 async function simulateRisk(riskId, userId) {
@@ -15,6 +45,10 @@ async function simulateRisk(riskId, userId) {
 
   const treatments = await db('risk_treatments').where('risk_id', riskId);
   const department = await db('departments').where('id', risk.department_id).first();
+
+  // Resolve department persona
+  const deptName = department?.name_en || '';
+  const persona = DEPT_SIMULATION_PERSONAS[deptName] || DEFAULT_SIMULATION_PERSONA;
 
   // Check for BIA links if table exists
   let linkedBIA = [];
@@ -45,7 +79,8 @@ async function simulateRisk(riskId, userId) {
       .select('id', 'risk_name', 'inherent_score', 'residual_score', 'lifecycle_status', 'response_type');
   } catch { /* ignore */ }
 
-  const prompt = `أنت محلل مخاطر مؤسسية متخصص في البيئة السعودية (NCA ECC، SAMA BCM، NDMO).
+  const prompt = `${persona}
+
 قم بتحليل الخطر التالي وإنشاء محاكاة شاملة للسيناريوهات المحتملة.
 
 ## تعليمات مهمة:
