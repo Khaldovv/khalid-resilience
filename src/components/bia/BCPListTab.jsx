@@ -217,25 +217,12 @@ export default function BCPListTab({ lang = "en" }) {
     toast.success(isAr ? `جارٍ إنشاء وثيقة Word لخطة ${plan.id}...` : `Generating Word document for ${plan.id}...`);
     
     try {
-      const resp = await fetch(`/api/v1/bcp/${plan.id}/generate`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || 'demo'}` }
-      });
-      
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `BCP-${plan.id}.docx`;
-        a.click();
-        URL.revokeObjectURL(url);
-        toast.success(isAr ? "تم تنزيل الوثيقة بنجاح ✅" : "Document downloaded successfully ✅");
-      } else {
-        // Fallback: show toast that backend is needed
-        toast.warning(isAr ? "يرجى تشغيل الخادم لتوليد الوثيقة — الخادم غير متصل حالياً" : "Backend server required for document generation — server not connected");
-      }
-    } catch {
-      toast.warning(isAr ? "الخادم غير متصل — يرجى تشغيل السيرفر لتوليد وثيقة Word" : "Server not connected — start backend to generate Word document");
+      const { downloadBCPDocx } = await import('../../utils/bcpDocxGenerator');
+      await downloadBCPDocx(plan);
+      toast.success(isAr ? "تم تنزيل وثيقة BCP بنجاح ✅" : "BCP document downloaded successfully ✅");
+    } catch (err) {
+      console.error('[BCP DOCX Error]:', err);
+      toast.error(isAr ? `فشل توليد الوثيقة: ${err.message}` : `Document generation failed: ${err.message}`);
     }
   };
   
