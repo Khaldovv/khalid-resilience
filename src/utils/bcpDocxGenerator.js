@@ -422,7 +422,11 @@ export async function generateBCPDocx(plan) {
 
 /**
  * Download BCP plan as DOCX — fully client-side
- * Uses file-saver (statically imported) for reliable filename handling
+ * 
+ * KEY FIX: Uses FileReader to convert to data URL first.
+ * Blob URLs lose the download attribute when browser's user gesture expires 
+ * (which happens during the async Packer.toBlob call).
+ * Data URLs don't have this issue.
  */
 export async function downloadBCPDocx(plan) {
   const rawBlob = await generateBCPDocx(plan);
@@ -432,9 +436,32 @@ export async function downloadBCPDocx(plan) {
     type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   });
   
-  // plan.id is already 'BCP-2026-001', just append suffix
+  // plan.id is already 'BCP-2026-001'
   const filename = `${plan.id}-Plan.docx`;
   
-  // Use file-saver (statically imported at top — no async gap)
-  saveAs(docxBlob, filename);
+  // Convert blob to ArrayBuffer, then to base64 data URL
+  // Data URLs always respect the download attribute (unlike blob URLs)
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      try {
+        const link = document.createElement('a');
+        link.href = reader.result; // data:application/vnd...;base64,...
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        
+        setTimeout(() => {
+          document.body.removeChild(link);
+        }, 300);
+        
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read blob'));
+    reader.readAsDataURL(docxBlob);
+  });
 }
