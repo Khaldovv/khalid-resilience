@@ -1,32 +1,22 @@
 import { useState } from 'react';
 import { Crosshair } from 'lucide-react';
 
-const COLORS = {
-  25: '#7f1d1d', // 5×5 catastrophic
-  20: '#991b1b', // 5×4, 4×5
-  16: '#ef4444', // 4×4
-  15: '#f97316', // 5×3, 3×5
-  12: '#f97316', // 4×3, 3×4
-  10: '#f59e0b', // 5×2, 2×5
-  9:  '#f59e0b', // 3×3
-  8:  '#eab308', // 4×2, 2×4
-  6:  '#84cc16', // 3×2, 2×3
-  5:  '#22c55e', // 5×1, 1×5
-  4:  '#22c55e', // 4×1, 1×4, 2×2
-  3:  '#22c55e', // 3×1, 1×3
-  2:  '#16a34a', // 2×1, 1×2
-  1:  '#16a34a', // 1×1
+// ─── Colors synced with RiskMatrix.jsx ─────────────────────────────────────────
+const CELL_COLORS = {
+  catastrophic: { bg: '#450a0a', border: '#ef4444' },  // score >= 20
+  high:         { bg: '#7f1d1d', border: '#dc2626' },  // score >= 15
+  medHigh:      { bg: '#9a3412', border: '#ea580c' },  // score >= 10
+  medium:       { bg: '#854d0e', border: '#ca8a04' },  // score >= 5
+  veryLow:      { bg: '#064e3b', border: '#059669' },  // score < 5
 };
 
 function getCellColor(likelihood, impact) {
   const score = likelihood * impact;
-  if (score >= 20) return '#7f1d1d';
-  if (score >= 15) return '#991b1b';
-  if (score >= 10) return '#ef4444';
-  if (score >= 8) return '#f97316';
-  if (score >= 5) return '#f59e0b';
-  if (score >= 3) return '#84cc16';
-  return '#16a34a';
+  if (score >= 20) return CELL_COLORS.catastrophic;
+  if (score >= 15) return CELL_COLORS.high;
+  if (score >= 10) return CELL_COLORS.medHigh;
+  if (score >= 5)  return CELL_COLORS.medium;
+  return CELL_COLORS.veryLow;
 }
 
 export default function RiskHeatmapMini({ matrix = {}, lang = 'ar', onNavigate }) {
@@ -72,9 +62,9 @@ export default function RiskHeatmapMini({ matrix = {}, lang = 'ar', onNavigate }
                 <div key={`${likelihood}-${impact}`}
                   className="relative aspect-square rounded-[3px] flex items-center justify-center cursor-pointer transition-all duration-150 hover:scale-110 hover:z-10"
                   style={{
-                    background: cell.count > 0 ? color : `${color}30`,
-                    border: `1px solid ${cell.count > 0 ? color : 'rgba(51,65,85,0.4)'}`,
-                    boxShadow: cell.count > 0 ? `0 0 8px ${color}40` : 'none',
+                    background: cell.count > 0 ? color.bg : `${color.bg}40`,
+                    border: `1px solid ${cell.count > 0 ? color.border : 'rgba(51,65,85,0.4)'}`,
+                    boxShadow: cell.count > 0 ? `0 0 8px ${color.border}33` : 'none',
                   }}
                   onMouseEnter={() => cell.count > 0 && setTooltip({ likelihood, impact, ...cell })}
                   onMouseLeave={() => setTooltip(null)}>
