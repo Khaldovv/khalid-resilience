@@ -335,7 +335,7 @@ const Sidebar = ({ activeNav, setActiveNav, activeTab, setActiveTab, isSidebarOp
           </div>
           <div>
             <p className="text-white font-bold text-sm leading-none">جاهزية</p>
-            <p className="text-cyan-400 text-[10px] tracking-widest mt-1">منصة الذكاء الاصطناعي</p>
+            <p className="text-cyan-400 text-[10px] tracking-widest mt-1">منصة جاهزية</p>
           </div>
         </div>
         <div className="mt-3.5 flex items-center gap-2">

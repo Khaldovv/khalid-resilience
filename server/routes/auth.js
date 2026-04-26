@@ -514,7 +514,7 @@ router.post('/change-password', authenticate, async (req, res, next) => {
  */
 router.post('/demo-login', async (req, res, next) => {
   try {
-    let demoUser = await db('users').where('email', 'demo@khalidresilience.com').first();
+    let demoUser = await db('users').where('email', 'demo@jahizia.com').first();
 
     if (!demoUser) {
       // Auto-create demo user if missing
@@ -522,7 +522,7 @@ router.post('/demo-login', async (req, res, next) => {
       // Look up first department UUID (departments use UUID primary keys)
       const firstDept = await db('departments').select('id').first();
       [demoUser] = await db('users').insert({
-        email: 'demo@khalidresilience.com',
+        email: 'demo@jahizia.com',
         password_hash: hashedPassword,
         full_name_ar: 'مستخدم تجريبي',
         full_name_en: 'Demo User',

@@ -17,7 +17,7 @@
 | **المالك** | الإدارة التنفيذية للمخاطر والامتثال |
 | **المعد** | فريق الهندسة البرمجية — Khalid Resilience |
 | **المعايير المرجعية** | ISO 31000:2018 · ISO 22301:2019 · ISO/TS 22317:2021 · مؤشر صمود (SARI) · ضوابط DGA |
-| **رابط المنصة** | [autoresilience-suite.vercel.app](https://autoresilience-suite.vercel.app) |
+| **رابط المنصة** | [jahizia.com](https://jahizia.com) |
 
 </div>
 

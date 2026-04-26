@@ -1,8 +1,19 @@
 # JAHIZIA — جاهزية
 
-**AI-Powered Enterprise Risk & Resilience Platform**
+**منصة جاهزية لإدارة المخاطر والمرونة المؤسسية**
 
-> منصة الذكاء الاصطناعي لإدارة المخاطر والمرونة المؤسسية — متوافقة مع المعايير السعودية والدولية
+> AI-Powered Enterprise Risk & Resilience Platform — Built for Saudi Vision 2030
+
+---
+
+## Live Platform
+
+🌐 **Production:** https://jahizia.com
+🔌 **API:** https://api.jahizia.com
+
+### Demo Access
+
+Visit https://jahizia.com and click **"تجربة جاهزية — دخول تجريبي فوري"** for instant CISO-level access with realistic demo data.
 
 ---
 
@@ -46,6 +57,7 @@ JAHIZIA is a bilingual (Arabic/English) AI-powered GRC platform built for Saudi 
 | AI | OpenRouter (GPT-4, Claude) |
 | Docs | docx.js + FileSaver |
 | Charts | Recharts |
+| Hosting | Vercel (frontend) + Railway (backend) |
 
 ## Getting Started
 
@@ -70,17 +82,17 @@ npm run dev
 DATABASE_URL=postgresql://...
 JWT_SECRET=your-secret
 OPENROUTER_API_KEY=your-key
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=https://jahizia.com
 ```
 
 ## Project Structure
 
 ```
 jahizia/
-├── public/brand/          # Logo SVGs (navy, white, mono)
+├── public/brand/          # Logo SVGs (navy source + CSS filter inversion)
 ├── src/
 │   ├── components/
-│   │   ├── brand/         # Logo component
+│   │   ├── brand/         # Logo component (theme-aware)
 │   │   ├── risk/          # Risk management
 │   │   ├── bia/           # Business impact analysis
 │   │   └── ...

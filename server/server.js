@@ -56,9 +56,14 @@ app.set('trust proxy', 1); // Railway/Vercel use reverse proxies
 app.use(helmet());
 // ── CORS — flexible for dev/staging/production ────────────────────────────────
 const allowedOrigins = [
+  // Local development
   'http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000',
+  // Production — jahizia.com (primary)
+  'https://jahizia.com', 'https://www.jahizia.com',
+  // Production — khalidresilience.com (legacy, kept during transition)
   'https://khalidresilience.com', 'https://www.khalidresilience.com',
   'http://khalidresilience.com', 'http://www.khalidresilience.com',
+  // Environment variable override
   process.env.FRONTEND_URL,
   ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : []),
 ].filter(Boolean);
@@ -69,7 +74,8 @@ app.use(cors({
     if (!origin) return callback(null, true);
     // Allow Vercel preview domains
     if (/\.vercel\.app$/.test(origin)) return callback(null, true);
-    // Allow khalidresilience.com custom domain
+    // Allow jahizia.com and khalidresilience.com custom domains
+    if (/^https?:\/\/(www\.)?jahizia\.com$/.test(origin)) return callback(null, true);
     if (/^https?:\/\/(www\.)?khalidresilience\.com$/.test(origin)) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     callback(new Error('Not allowed by CORS'));
