@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
-  ClipboardList, Flag, Activity, Menu, X, Sparkles, Bot, Building2,
+  Shield, ClipboardList, Flag, Activity, Menu, X, Sparkles, Bot, Building2,
   AlertTriangle, Calculator, ScrollText, Bell, ShieldCheck, Target, Layers,
   ChevronDown, Database, LayoutDashboard, Crosshair, FileCheck, FileText, LogOut
 } from "lucide-react";

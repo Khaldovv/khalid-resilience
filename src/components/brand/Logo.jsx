@@ -1,11 +1,13 @@
-import { useApp } from '../../context/AppContext';
-
 /**
  * JAHIZIA Logo Component — Single source of truth for brand logo display.
  *
+ * Uses direct img tags referencing SVG assets in /brand/.
  * Automatically inverts based on theme:
  * - Dark theme → white logo
  * - Light theme → navy logo (#1a2b56)
+ *
+ * NOTE: This component does NOT import AppContext to avoid circular dependency
+ * issues. It reads the theme from the DOM data-theme attribute instead.
  *
  * @param {'full'|'mark'} variant  — 'full' = logo + wordmark, 'mark' = icon only
  * @param {'xs'|'sm'|'md'|'lg'|'xl'|'2xl'|number} size — preset or pixel height
@@ -19,11 +21,10 @@ const Logo = ({
   className = '',
   ...rest
 }) => {
-  const { theme } = useApp();
-
-  // Resolve color based on theme
+  // Detect theme from DOM attribute (set by AppContext) to avoid circular deps
   let resolvedColor = color;
   if (color === 'auto') {
+    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
     resolvedColor = theme === 'dark' ? 'white' : 'navy';
   }
 
@@ -34,7 +35,6 @@ const Logo = ({
     'mark-navy': '/brand/jahizia-mark-navy.svg',
     'mark-white': '/brand/jahizia-mark-white.svg',
     'mark-mono': '/brand/jahizia-mark-mono.svg',
-    // full-mono falls back to full-navy
     'full-mono': '/brand/jahizia-full-navy.svg',
   };
 
