@@ -219,7 +219,7 @@ export default function AppShell() {
         <div className="px-5 pt-5 pb-4 border-b" style={{ borderColor: "#1e293b" }}>
           <NavLink to="/erm" className="flex items-center gap-3 no-underline">
             <div className="relative">
-              <Logo variant="mark" size="sm" color="white" />
+              <Logo variant="mark" size={36} color="white" />
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border-2 border-slate-950" />
             </div>
             <div>
@@ -298,7 +298,7 @@ export default function AppShell() {
         >
           <div className="flex items-center justify-between px-4 py-4 border-b" style={{ borderColor: "#1e293b" }}>
             <div className="flex items-center gap-3">
-              <Logo variant="mark" size="sm" color="white" />
+              <Logo variant="mark" size={30} color="white" />
               <p className="text-white font-extrabold text-sm m-0">{t('sidebar.platformName')}</p>
             </div>
             <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-500">
@@ -335,7 +335,7 @@ export default function AppShell() {
 
           {/* Mobile logo */}
           <NavLink to="/erm" className="md:hidden flex items-center gap-2 no-underline">
-            <Logo variant="mark" size="xs" color="white" />
+            <Logo variant="mark" size="sm" color="white" />
             <span className="text-white font-bold text-sm">{t('sidebar.platformName')}</span>
           </NavLink>
 

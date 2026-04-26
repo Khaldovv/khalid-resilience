@@ -75,7 +75,7 @@ export default function LoginPage() {
 
         <div style={{ maxWidth: 500 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
-            <Logo variant="full" size="xl" color="white" />
+            <Logo variant="full" size={160} color="white" />
           </div>
 
           <h2 style={{ color: '#e2e8f0', fontSize: 32, fontWeight: 700, lineHeight: 1.3, marginBottom: 16 }}>
@@ -116,7 +116,7 @@ export default function LoginPage() {
 
           {/* Mobile logo */}
           <div className="lg:hidden" style={{ textAlign: 'center', marginBottom: 32 }}>
-            <Logo variant="full" size="xl" color="white" style={{ margin: '0 auto 12px' }} />
+            <Logo variant="full" size={100} color="white" style={{ margin: '0 auto 12px' }} />
             <p style={{ color: '#64748b', fontSize: 13, marginTop: 6 }}>
               {isAr ? 'منصة الذكاء الاصطناعي لإدارة المخاطر والمرونة المؤسسية' : 'AI-Powered Enterprise Risk & Resilience Platform'}
             </p>
