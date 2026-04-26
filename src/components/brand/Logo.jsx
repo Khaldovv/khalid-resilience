@@ -2,13 +2,12 @@
  * JAHIZIA Logo Component — Single source of truth for brand logo display.
  *
  * APPROACH: Always loads the NAVY SVG source files and uses CSS filter
- * inversion (`brightness(0) invert(1)`) to render white on dark themes.
- * This avoids all SVG white-background bugs since only one set of SVGs
- * (navy, with transparent background) is ever used at runtime.
+ * inversion to render white on dark themes. CSS classes are used instead
+ * of inline styles for better mobile Safari/WebKit compatibility.
  *
- * - Dark theme (default) → navy SVG + CSS filter → appears WHITE
+ * - Dark theme (default) → navy SVG + CSS invert → appears WHITE
  * - Light theme → navy SVG rendered as-is → appears NAVY
- * - color="white" → forced CSS filter inversion regardless of theme
+ * - color="white" → forced CSS inversion regardless of theme
  * - color="navy" → no filter, always navy
  *
  * NOTE: Does NOT import AppContext to avoid circular dependency issues.
@@ -52,10 +51,13 @@ const Logo = ({
 
   const heightPx = typeof size === 'number' ? size : (sizeMap[size] || 48);
 
-  // CSS filter: brightness(0) turns all colors to black, invert(1) flips to white
-  const filterStyle = shouldInvert
-    ? { filter: 'brightness(0) invert(1)' }
-    : {};
+  // Build CSS class names — use CSS class for filter (more reliable on mobile Safari)
+  const classes = [
+    'jahizia-logo',
+    `jahizia-logo--${variant}`,
+    shouldInvert ? 'jahizia-logo--invert' : '',
+    className,
+  ].filter(Boolean).join(' ');
 
   return (
     <img
@@ -66,9 +68,8 @@ const Logo = ({
         width: 'auto',
         display: 'inline-block',
         objectFit: 'contain',
-        ...filterStyle,
       }}
-      className={`jahizia-logo jahizia-logo--${variant} ${className}`}
+      className={classes}
       draggable={false}
       {...rest}
     />

@@ -79,7 +79,7 @@ export default function LoginPage() {
           </div>
 
           <h2 style={{ color: '#e2e8f0', fontSize: 32, fontWeight: 700, lineHeight: 1.3, marginBottom: 16 }}>
-            {isAr ? 'منصة الذكاء الاصطناعي\nلإدارة المخاطر والمرونة المؤسسية' : 'AI-Powered\nRisk & Resilience\nManagement Platform'}
+            {isAr ? 'منصة جاهزية\nلإدارة المخاطر والمرونة المؤسسية' : 'JAHIZIA\nRisk & Resilience\nManagement Platform'}
           </h2>
 
           <p style={{ color: '#64748b', fontSize: 15, lineHeight: 1.7, marginBottom: 40 }}>
@@ -118,7 +118,7 @@ export default function LoginPage() {
           <div className="lg:hidden" style={{ textAlign: 'center', marginBottom: 32 }}>
             <Logo variant="full" size={100} color="white" style={{ margin: '0 auto 12px' }} />
             <p style={{ color: '#64748b', fontSize: 13, marginTop: 6 }}>
-              {isAr ? 'منصة الذكاء الاصطناعي لإدارة المخاطر والمرونة المؤسسية' : 'AI-Powered Enterprise Risk & Resilience Platform'}
+              {isAr ? 'منصة جاهزية لإدارة المخاطر والمرونة المؤسسية' : 'JAHIZIA Enterprise Risk & Resilience Platform'}
             </p>
           </div>
 

@@ -154,6 +154,22 @@
 [data-theme="light"] .bg-slate-700 { background-color: #cbd5e1 !important; }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   JAHIZIA LOGO — MOBILE-SAFE COLOR INVERSION
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.jahizia-logo {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  vertical-align: middle;
+}
+
+/* Invert navy (#1a2b56) to white — with WebKit prefix for iOS Safari */
+.jahizia-logo--invert {
+  -webkit-filter: brightness(0) invert(1) !important;
+  filter: brightness(0) invert(1) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    FONT SIZE PRESETS
    ═══════════════════════════════════════════════════════════════════════════════ */
 [data-font-size="sm"] { font-size: 14px; }
