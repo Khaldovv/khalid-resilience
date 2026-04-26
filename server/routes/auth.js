@@ -228,8 +228,8 @@ router.post('/mfa/setup', authenticate, async (req, res, next) => {
     }
 
     const mfaSecret = speakeasy.generateSecret({
-      name: `Khalid Resilience (${user.email})`,
-      issuer: 'Khalid Resilience GRC',
+      name: `JAHIZIA (${user.email})`,
+      issuer: 'JAHIZIA GRC',
     });
 
     // Save secret (not yet enabled)

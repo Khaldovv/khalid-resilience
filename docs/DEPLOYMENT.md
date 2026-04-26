@@ -1,4 +1,4 @@
-# Deployment Guide — Khalid Resilience
+# Deployment Guide — JAHIZIA
 
 ## Recommended Stack
 

@@ -28,7 +28,7 @@ export const translations = {
 
   'sidebar.live':          { ar: 'مباشر', en: 'LIVE' },
   'sidebar.allSystems':    { ar: 'جميع الأنظمة تعمل بكفاءة', en: 'ALL SYSTEMS OPERATIONAL' },
-  'sidebar.platformName':  { ar: 'خالد ريزيلينس', en: 'Khalid Resilience' },
+  'sidebar.platformName':  { ar: 'جاهزية', en: 'JAHIZIA' },
   'sidebar.platformTag':   { ar: 'منصة الذكاء الاصطناعي', en: 'AI · PLATFORM' },
   'sidebar.clearance':     { ar: 'صلاحية الوصول:', en: 'CLEARANCE:' },
   'sidebar.clearLevel':    { ar: 'المستوى 5 · تنفيذي', en: 'LEVEL-5 · EXEC' },

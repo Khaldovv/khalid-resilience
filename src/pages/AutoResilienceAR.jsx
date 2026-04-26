@@ -334,7 +334,7 @@ const Sidebar = ({ activeNav, setActiveNav, activeTab, setActiveTab, isSidebarOp
             <span className="absolute -top-0.5 -left-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-slate-950" />
           </div>
           <div>
-            <p className="text-white font-bold text-sm leading-none">خالد ريزيلينس</p>
+            <p className="text-white font-bold text-sm leading-none">جاهزية</p>
             <p className="text-cyan-400 text-[10px] tracking-widest mt-1">منصة الذكاء الاصطناعي</p>
           </div>
         </div>
@@ -1584,7 +1584,7 @@ export default function AutoResilienceAR() {
           <div className="border-t border-slate-800/60 px-6 py-2 flex items-center justify-between text-[10px] text-slate-600" style={{ background: "rgba(2,8,23,0.8)" }}>
             <div className="flex items-center gap-4">
               <span className="text-cyan-600">النسخة المؤسسية 2026 ·</span>
-              <span>منصة خالد ريزيلينس للذكاء الاصطناعي · الإصدار 4.2.1</span>
+              <span>منصة جاهزية للذكاء الاصطناعي · الإصدار 4.2.1</span>
             </div>
             <div className="flex items-center gap-4">
               <span>محرك SOAR: <span className="text-emerald-500">يعمل</span></span>

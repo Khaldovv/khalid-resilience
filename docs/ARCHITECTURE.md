@@ -1,4 +1,4 @@
-# Architecture Overview — Khalid Resilience GRC Platform
+# Architecture Overview — JAHIZIA GRC Platform
 
 ## High-Level Architecture
 

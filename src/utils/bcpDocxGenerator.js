@@ -206,7 +206,7 @@ export async function generateBCPDocx(plan) {
 
           new Paragraph({ spacing: { before: 600 } }),
           new Paragraph({ alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: `منصة Khalid Resilience — ${new Date().getFullYear()}`, size: 18, color: '9CA3AF' })] }),
+            children: [new TextRun({ text: `منصة JAHIZIA — جاهزية — ${new Date().getFullYear()}`, size: 18, color: '9CA3AF' })] }),
           new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 60 },
             children: [new TextRun({ text: 'تم إنشاء هذه الوثيقة آلياً وفق معيار ISO 22301:2019', size: 16, color: '9CA3AF' })] }),
         ]
@@ -218,7 +218,7 @@ export async function generateBCPDocx(plan) {
       {
         properties: { page: { size: { width: PAGE_WIDTH, height: 16838 }, margin: { top: MARGIN, right: MARGIN, bottom: MARGIN, left: MARGIN } } },
         headers: { default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: CYAN, space: 8 } }, children: [new TextRun({ text: `خطة BCP — ${plan.id} — ${plan.title_ar || ''}`, size: 16, color: '9CA3AF', font: 'Arial' })] })] }) },
-        footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, border: { top: { style: BorderStyle.SINGLE, size: 2, color: 'E5E7EB', space: 8 } }, children: [new TextRun({ text: 'سري — Khalid Resilience — صفحة ', size: 14, color: '9CA3AF' }), new TextRun({ children: [PageNumber.CURRENT], size: 14, color: '9CA3AF' })] })] }) },
+        footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, border: { top: { style: BorderStyle.SINGLE, size: 2, color: 'E5E7EB', space: 8 } }, children: [new TextRun({ text: 'سري — JAHIZIA — جاهزية — صفحة ', size: 14, color: '9CA3AF' }), new TextRun({ children: [PageNumber.CURRENT], size: 14, color: '9CA3AF' })] })] }) },
         children: [
           // TABLE OF CONTENTS
           heading1('فهرس المحتويات'),
@@ -404,13 +404,13 @@ export async function generateBCPDocx(plan) {
           heading2('12.2 سجل مراجعات الخطة'),
           new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, columnWidths: [1200, 1800, 2500, 3526], rows: [
             makeHeaderRow(['الإصدار', 'التاريخ', 'المُعد', 'وصف التعديل'], [1200, 1800, 2500, 3526]),
-            makeDataRow([plan.version || '1.0', formatDate(plan.created_at), plan.creator_name_ar || '—', 'الإصدار الأولي — إنشاء آلي من منصة Khalid Resilience'], [1200, 1800, 2500, 3526]),
+            makeDataRow([plan.version || '1.0', formatDate(plan.created_at), plan.creator_name_ar || '—', 'الإصدار الأولي — إنشاء آلي من منصة JAHIZIA'], [1200, 1800, 2500, 3526]),
           ]}),
 
           new Paragraph({ spacing: { before: 800 } }),
           new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: '━━━━━ نهاية الخطة ━━━━━', size: 20, color: '9CA3AF' })] }),
           new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 100 },
-            children: [new TextRun({ text: `تم إنشاء هذه الوثيقة آلياً بواسطة منصة Khalid Resilience — ${formatDate(new Date())}`, size: 16, color: '9CA3AF' })] }),
+            children: [new TextRun({ text: `تم إنشاء هذه الوثيقة آلياً بواسطة منصة JAHIZIA — جاهزية — ${formatDate(new Date())}`, size: 16, color: '9CA3AF' })] }),
         ]
       }
     ]

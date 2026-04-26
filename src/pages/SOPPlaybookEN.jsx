@@ -916,7 +916,7 @@ export default function SOPPlaybookEN() {
             <span>XAI Engine: Shapley SHAP v2.1</span>
           </div>
           <div className="text-[10px] mono text-slate-600 flex items-center gap-3">
-            <span>Khalid Resilience AI · SOP Engine v4.2.1</span>
+            <span>JAHIZIA AI · SOP Engine v4.2.1</span>
             <span className="text-slate-700">·</span>
             <span>Classification: <span className="text-amber-600">RESTRICTED // TLP:AMBER</span></span>
           </div>

@@ -3,7 +3,7 @@ import { translations } from "../data/translations";
 
 const AppContext = createContext();
 
-const STORAGE_KEY = "autoresilience-settings";
+const STORAGE_KEY = "jahizia-settings";
 
 const defaults = {
   language: "ar",   // 'en' | 'ar' — Arabic first

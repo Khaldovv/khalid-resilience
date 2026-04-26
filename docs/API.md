@@ -1,4 +1,4 @@
-# API Reference — Khalid Resilience
+# API Reference — JAHIZIA
 
 **Base URL:** `http://localhost:3001/api/v1`
 **Interactive Docs:** http://localhost:3001/api/docs (Swagger UI)

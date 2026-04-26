@@ -1,7 +1,7 @@
 {
-  "name": "khalid-resilience",
+  "name": "jahizia",
   "version": "1.0.0",
-  "description": "Khalid Resilience — AI-Powered Enterprise GRC Platform",
+  "description": "JAHIZIA — AI-Powered Enterprise Risk & Resilience Platform",
   "type": "module",
   "scripts": {
     "dev": "vite",

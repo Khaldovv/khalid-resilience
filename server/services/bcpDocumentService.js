@@ -117,7 +117,7 @@ async function generateBCPDocument(plan) {
           new Paragraph({
             spacing: { before: 600 },
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: `\u0645\u0646\u0635\u0629 Khalid Resilience \u2014 ${new Date().getFullYear()}`, size: 18, color: '999999' })]
+            children: [new TextRun({ text: `\u0645\u0646\u0635\u0629 JAHIZIA \u2014 \u062c\u0627\u0647\u0632\u064a\u0629 \u2014 ${new Date().getFullYear()}`, size: 18, color: '999999' })]
           })
         ]
       },
@@ -483,7 +483,7 @@ async function generateBCPDocument(plan) {
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [new TextRun({ 
-              text: `\u062A\u0645 \u0625\u0646\u0634\u0627\u0621 \u0647\u0630\u0647 \u0627\u0644\u062E\u0637\u0629 \u0622\u0644\u064A\u0627\u064B \u0628\u0648\u0627\u0633\u0637\u0629 \u0645\u0646\u0635\u0629 Khalid Resilience \u2014 ${formatDate(new Date())}`, 
+              text: `\u062A\u0645 \u0625\u0646\u0634\u0627\u0621 \u0647\u0630\u0647 \u0627\u0644\u062E\u0637\u0629 \u0622\u0644\u064A\u0627\u064B \u0628\u0648\u0627\u0633\u0637\u0629 \u0645\u0646\u0635\u0629 JAHIZIA \u2014 \u062c\u0627\u0647\u0632\u064a\u0629 \u2014 ${formatDate(new Date())}`, 
               size: 18, color: '999999' 
             })]
           })

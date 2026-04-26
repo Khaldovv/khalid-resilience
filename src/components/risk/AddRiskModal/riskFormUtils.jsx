@@ -54,7 +54,7 @@ export const initialForm = {
   notes: "", lifecycleStatus: "",
 };
 
-export const DRAFT_KEY = "autoresilience_risk_draft";
+export const DRAFT_KEY = "jahizia_risk_draft";
 
 // ─── Shared Styles ────────────────────────────────────────────────────────────
 export const makeInputStyle = (isAr) => ({

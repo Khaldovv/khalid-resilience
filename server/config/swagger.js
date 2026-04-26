@@ -7,14 +7,14 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Khalid Resilience — GRC Platform API',
+      title: 'JAHIZIA — GRC Platform API',
       version: '1.0.0',
       description:
         'Enterprise Governance, Risk & Compliance API. Bilingual (Arabic/English). ' +
         'Supports ISO 31000, ISO 22301, NCA ECC, SAMA BCM, DGA, NDMO SUMOOD compliance.',
       contact: {
         name: 'Khalid Alghofaili',
-        email: 'admin@khalid-resilience.com',
+        email: 'admin@jahizia.sa',
       },
     },
     servers: [

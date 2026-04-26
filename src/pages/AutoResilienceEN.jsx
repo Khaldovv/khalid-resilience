@@ -329,7 +329,7 @@ const Sidebar = ({ activeNav, setActiveNav, activeTab, setActiveTab, isSidebarOp
             <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border border-slate-950" />
           </div>
           <div>
-            <p className="text-white font-bold text-sm tracking-tight leading-none">Khalid Resilience</p>
+            <p className="text-white font-bold text-sm tracking-tight leading-none">JAHIZIA</p>
             <p className="text-cyan-400 text-[10px] font-mono tracking-widest mt-0.5">AI · PLATFORM</p>
           </div>
         </div>
@@ -1758,7 +1758,7 @@ export default function AutoResilienceEN() {
             <span>SOAR Engine: <span className="text-emerald-500">Operational</span></span>
           </div>
           <div className="flex items-center gap-4">
-            <span>Khalid Resilience AI Platform <span className="text-slate-700">·</span> v4.2.1</span>
+            <span>JAHIZIA AI Platform <span className="text-slate-700">·</span> v4.2.1</span>
             <span className="text-cyan-600">© 2026 Enterprise Edition</span>
           </div>
         </div>

@@ -207,8 +207,8 @@ export const exportToPDF = async (data, columns, filename, options = {}) => {
       <div class="subtitle">تاريخ الإصدار: ${dateStr} — ${timeStr}</div>
     </div>
     <div class="logo">
-      <div class="brand">خالد ريزيلينس</div>
-      Khalid Resilience AI Platform
+      <div class="brand">جاهزية</div>
+      JAHIZIA AI Platform
     </div>
   </div>
 
@@ -237,7 +237,7 @@ export const exportToPDF = async (data, columns, filename, options = {}) => {
   </table>
 
   <div class="footer">
-    <span>تم الإنشاء بواسطة منصة خالد ريزيلينس — Khalid Resilience AI Platform v4.2</span>
+    <span>تم الإنشاء بواسطة منصة جاهزية — JAHIZIA AI Platform</span>
     <span>سري وللاستخدام الداخلي فقط — Confidential</span>
     <span>الصفحة 1</span>
   </div>
@@ -372,7 +372,7 @@ export const exportToDocx = (data, columns, filename, options = {}) => {
     <w:p>
       <w:pPr><w:bidi/><w:jc w:val="right"/></w:pPr>
       <w:r><w:rPr><w:sz w:val="16"/><w:color w:val="94A3B8"/><w:rtl/></w:rPr>
-        <w:t>تم الإنشاء بواسطة منصة خالد ريزيلينس — Khalid Resilience AI Platform v4.2 — سري وللاستخدام الداخلي فقط</w:t>
+        <w:t>تم الإنشاء بواسطة منصة جاهزية — JAHIZIA AI Platform — سري وللاستخدام الداخلي فقط</w:t>
       </w:r>
     </w:p>
 

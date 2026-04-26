@@ -122,7 +122,7 @@ try {
   const swaggerSpec = require('./config/swagger');
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Khalid Resilience API Docs',
+    customSiteTitle: 'JAHIZIA API Docs',
     swaggerOptions: { persistAuthorization: true },
   }));
   logger.info('Swagger API docs available at /api/docs');

@@ -871,7 +871,7 @@ export default function SOPPlaybookAR() {
           <div className="flex items-center gap-3 text-[10px] mono text-slate-600">
             <span>التصنيف: <span className="text-amber-600">مقيَّد // TLP:AMBER</span></span>
             <span className="text-slate-700">·</span>
-            <span>خالد ريزيلينس AI · محرك SOP v4.2.1</span>
+            <span>جاهزية AI · محرك SOP v4.2.1</span>
           </div>
           <div className="flex items-center gap-4 text-[10px] mono text-slate-600">
             <span>محرك XAI: <span className="text-slate-500">Shapley SHAP v2.1</span></span>

@@ -15,7 +15,7 @@ const logger = winston.createLogger({
     winston.format.errors({ stack: true }),
     winston.format.json()
   ),
-  defaultMeta: { service: 'khalid-resilience' },
+  defaultMeta: { service: 'jahizia' },
   transports: [
     new DailyRotateFile({
       filename: path.join(logsDir, 'error-%DATE%.log'),

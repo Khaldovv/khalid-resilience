@@ -15,6 +15,11 @@
   --bg-elevated: #142640;
   --bg-overlay: rgba(10, 22, 40, 0.85);
 
+  /* JAHIZIA Brand Colors */
+  --jahizia-navy: #1A2B56;
+  --jahizia-navy-dark: #0F1D32;
+  --logo-color: #FFFFFF; /* white logo on dark theme */
+
   /* Legacy aliases (keep existing components working) */
   --bg-primary: #050A18;
   --bg-secondary: #0A1628;

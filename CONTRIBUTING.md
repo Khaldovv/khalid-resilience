@@ -1,6 +1,6 @@
-# Contributing to Khalid Resilience
+# Contributing to JAHIZIA
 
-Thank you for your interest in contributing to the Khalid Resilience GRC platform!
+Thank you for your interest in contributing to the JAHIZIA GRC platform!
 
 ## Getting Started
 

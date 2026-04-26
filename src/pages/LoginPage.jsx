@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Sparkles, Eye, EyeOff, ChevronRight, Zap, BarChart3, Bot, Globe } from 'lucide-react';
+import { Sparkles, Eye, EyeOff, ChevronRight, Zap, BarChart3, Bot, Globe } from 'lucide-react';
+import Logo from '../components/brand/Logo';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { setToken } from '../services/api';
@@ -74,20 +75,7 @@ export default function LoginPage() {
 
         <div style={{ maxWidth: 500 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
-            <div style={{
-              width: 56, height: 56, borderRadius: 16,
-              background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 40px rgba(6,182,212,0.3)',
-            }}>
-              <Shield size={28} color="white" />
-            </div>
-            <div>
-              <h1 style={{ color: 'white', fontSize: 28, fontWeight: 800, margin: 0, letterSpacing: -0.5 }}>Khalid Resilience</h1>
-              <p style={{ color: '#06b6d4', fontSize: 10, fontWeight: 600, margin: 0, letterSpacing: 3, fontFamily: 'monospace', textTransform: 'uppercase' }}>
-                Enterprise GRC Platform
-              </p>
-            </div>
+            <Logo variant="full" size="xl" color="white" />
           </div>
 
           <h2 style={{ color: '#e2e8f0', fontSize: 32, fontWeight: 700, lineHeight: 1.3, marginBottom: 16 }}>
@@ -128,17 +116,9 @@ export default function LoginPage() {
 
           {/* Mobile logo */}
           <div className="lg:hidden" style={{ textAlign: 'center', marginBottom: 32 }}>
-            <div style={{
-              width: 56, height: 56, borderRadius: 16, margin: '0 auto 12px',
-              background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 40px rgba(6,182,212,0.3)',
-            }}>
-              <Shield size={28} color="white" />
-            </div>
-            <h1 style={{ color: 'white', fontSize: 24, fontWeight: 800, margin: 0 }}>Khalid Resilience</h1>
+            <Logo variant="full" size="xl" color="white" style={{ margin: '0 auto 12px' }} />
             <p style={{ color: '#64748b', fontSize: 13, marginTop: 6 }}>
-              {isAr ? 'منصة الذكاء الاصطناعي لإدارة المخاطر' : 'AI-Powered Risk Management Platform'}
+              {isAr ? 'منصة الذكاء الاصطناعي لإدارة المخاطر والمرونة المؤسسية' : 'AI-Powered Enterprise Risk & Resilience Platform'}
             </p>
           </div>
 
@@ -165,7 +145,7 @@ export default function LoginPage() {
             ) : (
               <Sparkles size={20} />
             )}
-            {isAr ? 'تجربة المنصة — دخول تجريبي فوري' : 'Try the Platform — Instant Demo Access'}
+            {isAr ? 'تجربة جاهزية — دخول تجريبي فوري' : 'Try JAHIZIA — Instant Demo Access'}
           </button>
 
           <p style={{ textAlign: 'center', color: '#475569', fontSize: 11, marginBottom: 28, lineHeight: 1.5 }}>
@@ -269,7 +249,7 @@ export default function LoginPage() {
               ))}
             </div>
             <p style={{ color: '#334155', fontSize: 11 }}>
-              © {new Date().getFullYear()} Khalid Resilience — Built for Saudi Vision 2030
+              © {new Date().getFullYear()} JAHIZIA — جاهزية — Built for Saudi Vision 2030
             </p>
           </div>
         </div>
