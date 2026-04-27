@@ -42,15 +42,21 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Demo login failed');
+      let data;
+      try {
+        const text = await res.text();
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error(isAr ? 'خطأ في الاتصال بالخادم' : 'Server connection error');
+      }
+      if (!res.ok) throw new Error(data.error || (isAr ? 'فشل الدخول التجريبي' : 'Demo login failed'));
 
       setToken(data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('isDemo', 'true');
       window.location.href = '/erm';
     } catch (err) {
-      setError(err.message);
+      setError(err.message || (isAr ? 'فشل الاتصال بالخادم' : 'Failed to connect to server'));
     } finally {
       setDemoLoading(false);
     }

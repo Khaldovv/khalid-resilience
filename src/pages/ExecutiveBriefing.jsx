@@ -352,16 +352,21 @@ export default function ExecutiveBriefing() {
         {/* Department Risk Bar */}
         <ChartCard title={t("Risks by Department", "المخاطر حسب الإدارة")}>
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={deptRisks} layout="vertical" margin={{ top: 0, right: 16, left: 10, bottom: 0 }}>
-              <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} width={130}
+            <BarChart data={deptRisks} layout="vertical"
+              margin={isAr ? { top: 0, right: 130, left: 16, bottom: 0 } : { top: 0, right: 16, left: 10, bottom: 0 }}>
+              <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} reversed={isAr} />
+              <YAxis type="category" dataKey="name"
+                orientation={isAr ? "right" : "left"}
+                tick={{ fontSize: 10, fill: "#94a3b8" }}
+                width={120}
+                mirror={false}
                 tickFormatter={(v) => v.length > 15 ? v.substring(0, 15) + '..' : v} />
               <Tooltip contentStyle={{
                 background: "#0f172a", border: "1px solid #334155",
                 borderRadius: 8, color: "#e2e8f0", fontSize: 12,
               }} />
-              <Bar dataKey="total" fill="#06b6d4" radius={[0, 4, 4, 0]} name={t("Total", "إجمالي")} />
-              <Bar dataKey="critical" fill="#ef4444" radius={[0, 4, 4, 0]} name={t("Critical", "حرجة")} />
+              <Bar dataKey="total" fill="#06b6d4" radius={isAr ? [4, 0, 0, 4] : [0, 4, 4, 0]} name={t("Total", "إجمالي")} />
+              <Bar dataKey="critical" fill="#ef4444" radius={isAr ? [4, 0, 0, 4] : [0, 4, 4, 0]} name={t("Critical", "حرجة")} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

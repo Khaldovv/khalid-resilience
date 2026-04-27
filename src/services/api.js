@@ -61,7 +61,14 @@ async function request(endpoint, options = {}) {
     return res.blob();
   }
 
-  return res.json();
+  // Safely parse JSON (handle empty responses)
+  const text = await res.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
 }
 
 // ── Convenience methods ────────────────────────────────────────────────────────

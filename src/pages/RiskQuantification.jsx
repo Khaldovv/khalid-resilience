@@ -4,6 +4,84 @@ import { useQuantification } from "../context/QuantificationContext";
 import { risksAPI } from "../services/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
+/* ═══ Inject responsive CSS for Monte Carlo page ═══ */
+const MC_STYLE_ID = "mc-responsive-css";
+if (typeof document !== "undefined" && !document.getElementById(MC_STYLE_ID)) {
+  const style = document.createElement("style");
+  style.id = MC_STYLE_ID;
+  style.textContent = `
+    .mc-main-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+    }
+    .mc-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .mc-stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .mc-portfolio-kpi {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 900px) {
+      .mc-main-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .mc-kpi-grid {
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 8px !important;
+      }
+      .mc-kpi-grid .stat-card {
+        padding: 10px 8px !important;
+        min-width: 0 !important;
+      }
+      .mc-kpi-grid .stat-card div:first-child {
+        font-size: 8px !important;
+      }
+      .mc-kpi-grid .stat-card div:last-child {
+        font-size: 16px !important;
+      }
+      .mc-stats-row {
+        gap: 10px !important;
+        font-size: 10px !important;
+      }
+      .mc-portfolio-kpi {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
+    }
+    @media (max-width: 500px) {
+      .mc-kpi-grid {
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 6px !important;
+      }
+      .mc-kpi-grid .stat-card div:first-child {
+        font-size: 7px !important;
+        letter-spacing: 0 !important;
+      }
+      .mc-kpi-grid .stat-card div:last-child {
+        font-size: 14px !important;
+      }
+      .mc-stats-row {
+        gap: 6px !important;
+        font-size: 9px !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 const formatSAR = (val) => {
   const n = Number(val);
   if (isNaN(n)) return "—";
@@ -54,7 +132,7 @@ export default function RiskQuantification() {
 
       {/* Individual Risk Simulation */}
       {tab === "individual" && (
-        <div style={{ display: "grid", gridTemplateColumns: "380px 1fr", gap: 20 }}>
+        <div className="mc-main-grid">
           {/* Input Form */}
           <div className="glass-card" style={{ padding: 20 }}>
             <h3 style={{ color: "var(--text-primary)", fontSize: 15, fontWeight: 700, margin: "0 0 16px" }}>Simulation Parameters</h3>
@@ -91,7 +169,7 @@ export default function RiskQuantification() {
             {simulationResult ? (
               <>
                 {/* KPI Cards */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
+                <div className="mc-kpi-grid" style={{ marginBottom: 16 }}>
                   {[
                     { label: "ALE (Annual Loss Expectancy)", value: formatSAR(simulationResult.annualized_loss_expectancy_sar), color: "#ef4444" },
                     { label: "VaR 95%", value: formatSAR(simulationResult.var_95_sar), color: "#f59e0b" },
@@ -114,11 +192,11 @@ export default function RiskQuantification() {
                       <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
-                  <div style={{ display: "flex", justifyContent: "center", gap: 20, marginTop: 10, fontSize: 11, color: "#64748b" }}>
-                    <span>Mean: {formatSAR(simulationResult.mean_loss_sar)}</span>
-                    <span>Median: {formatSAR(simulationResult.median_loss_sar)}</span>
-                    <span>P90: {formatSAR(simulationResult.percentile_90_sar)}</span>
+                  <div className="mc-stats-row">
                     <span>P95: {formatSAR(simulationResult.percentile_95_sar)}</span>
+                    <span>P90: {formatSAR(simulationResult.percentile_90_sar)}</span>
+                    <span>Median: {formatSAR(simulationResult.median_loss_sar)}</span>
+                    <span>Mean: {formatSAR(simulationResult.mean_loss_sar)}</span>
                   </div>
                 </div>
               </>
@@ -143,7 +221,7 @@ export default function RiskQuantification() {
           </div>
           {portfolio ? (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+              <div className="mc-portfolio-kpi" style={{ marginBottom: 20 }}>
                 {[
                   { label: "Total ALE", value: formatSAR(portfolio.total_ale_sar), color: "#ef4444" },
                   { label: "Portfolio VaR 95%", value: formatSAR(portfolio.portfolio_var_95_sar), color: "#f59e0b" },
