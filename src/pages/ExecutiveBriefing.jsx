@@ -349,25 +349,67 @@ export default function ExecutiveBriefing() {
           </ResponsiveContainer>
         </ChartCard>
 
-        {/* Department Risk Bar */}
+        {/* Department Risk Bar — Pure CSS for proper RTL */}
         <ChartCard title={t("Risks by Department", "المخاطر حسب الإدارة")}>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={deptRisks} layout="vertical"
-              margin={isAr ? { top: 0, right: 4, left: 16, bottom: 0 } : { top: 0, right: 16, left: 4, bottom: 0 }}>
-              <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} reversed={isAr} />
-              <YAxis type="category" dataKey="name"
-                orientation={isAr ? "right" : "left"}
-                tick={{ fontSize: 9, fill: "#94a3b8" }}
-                width={110}
-                tickFormatter={(v) => v.length > 12 ? v.substring(0, 12) + '..' : v} />
-              <Tooltip contentStyle={{
-                background: "#0f172a", border: "1px solid #334155",
-                borderRadius: 8, color: "#e2e8f0", fontSize: 12,
-              }} />
-              <Bar dataKey="total" fill="#06b6d4" radius={isAr ? [4, 0, 0, 4] : [0, 4, 4, 0]} name={t("Total", "إجمالي")} barSize={14} />
-              <Bar dataKey="critical" fill="#ef4444" radius={isAr ? [4, 0, 0, 4] : [0, 4, 4, 0]} name={t("Critical", "حرجة")} barSize={14} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "4px 0" }}>
+            {deptRisks.map((d, i) => {
+              const maxVal = Math.max(...deptRisks.map(x => x.total), 1);
+              const totalPct = (d.total / maxVal) * 100;
+              const critPct = (d.critical / maxVal) * 100;
+              return (
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  flexDirection: isAr ? "row-reverse" : "row",
+                }}>
+                  <div style={{
+                    width: 90, flexShrink: 0, fontSize: 10, fontWeight: 600,
+                    color: "#94a3b8", textAlign: isAr ? "left" : "right",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    direction: isAr ? "rtl" : "ltr",
+                  }} title={d.name}>
+                    {d.name.length > 14 ? d.name.substring(0, 14) + '..' : d.name}
+                  </div>
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                    <div style={{
+                      height: 10, borderRadius: 4,
+                      background: "#06b6d4",
+                      width: `${Math.max(totalPct, 3)}%`,
+                      transition: "width 0.6s ease",
+                      marginLeft: isAr ? "auto" : 0,
+                      marginRight: isAr ? 0 : "auto",
+                    }} />
+                    {d.critical > 0 && (
+                      <div style={{
+                        height: 10, borderRadius: 4,
+                        background: "#ef4444",
+                        width: `${Math.max(critPct, 3)}%`,
+                        transition: "width 0.6s ease",
+                        marginLeft: isAr ? "auto" : 0,
+                        marginRight: isAr ? 0 : "auto",
+                      }} />
+                    )}
+                  </div>
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, color: "#e2e8f0",
+                    fontFamily: "monospace", width: 24, textAlign: "center", flexShrink: 0,
+                  }}>{d.total}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{
+            display: "flex", justifyContent: "center", gap: 16, marginTop: 10,
+            fontSize: 10, color: "#64748b",
+          }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: "#06b6d4", display: "inline-block" }} />
+              {t("Total", "إجمالي")}
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: "#ef4444", display: "inline-block" }} />
+              {t("Critical", "حرجة")}
+            </span>
+          </div>
         </ChartCard>
       </div>
 
