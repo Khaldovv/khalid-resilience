@@ -253,17 +253,17 @@ ${JSON.stringify(analysisSchema.outputSchema, null, 2)}
 
     const featureModelMap = {
       // High quality — Arabic reasoning
-      ai_agent:          'qwen/qwen-2.5-72b-instruct',
-      risk_simulation:   'qwen/qwen-2.5-72b-instruct',
-      risk_generator:    'qwen/qwen-2.5-72b-instruct',
-      sumood_compliance: 'qwen/qwen-2.5-72b-instruct',
+      ai_agent:          'qwen/qwen3.6-plus',
+      risk_simulation:   'qwen/qwen3.6-plus',
+      risk_generator:    'qwen/qwen3.6-plus',
+      sumood_compliance: 'qwen/qwen3.6-plus',
       // Fast & cheap
-      predictive_insights: 'deepseek/deepseek-chat',
-      regulatory_analysis: 'deepseek/deepseek-chat',
-      dashboard_summary:   'deepseek/deepseek-chat',
-      classification:      'meta-llama/llama-3.1-8b-instruct:free',
+      predictive_insights: 'deepseek/deepseek-v4-flash',
+      regulatory_analysis: 'deepseek/deepseek-v4-flash',
+      dashboard_summary:   'deepseek/deepseek-v4-flash',
+      classification:      'deepseek/deepseek-v4-flash',
       // Default
-      general: 'deepseek/deepseek-chat',
+      general: 'deepseek/deepseek-v4-flash',
     };
 
     return featureModelMap[feature] || featureModelMap.general;
@@ -320,9 +320,9 @@ ${JSON.stringify(schema, null, 2)}`;
 
   _estimateCost(model, usage) {
     const pricing = {
-      'qwen/qwen-2.5-72b-instruct':          { input: 0.40, output: 0.40 },
-      'deepseek/deepseek-chat':               { input: 0.14, output: 0.28 },
-      'meta-llama/llama-3.1-8b-instruct:free': { input: 0, output: 0 },
+      'qwen/qwen3.6-plus':                    { input: 0.50, output: 0.50 },
+      'deepseek/deepseek-v4-flash':           { input: 0.10, output: 0.30 },
+      'deepseek/deepseek-v4-pro':             { input: 0.40, output: 1.20 },
       'meta-llama/llama-3.3-70b-instruct':    { input: 0.23, output: 0.40 },
       'mistralai/mistral-large-2411':         { input: 2.00, output: 6.00 },
     };

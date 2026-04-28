@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { Bot, Send, Plus, Trash2, Search, ShieldAlert, BarChart3, FileSearch, CheckCircle, Loader2, MessageSquare, Sparkles } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Bot, Send, Plus, Trash2, Search, ShieldAlert, BarChart3, FileSearch, CheckCircle, Loader2, MessageSquare, Sparkles, Menu, X, ChevronLeft } from "lucide-react";
 import { useAI } from "../context/AIContext";
 import { useApp } from "../context/AppContext";
 
@@ -29,10 +29,24 @@ export default function AIAgentView() {
   const [input, setInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [contextType, setContextType] = useState("GENERAL");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
   const { language } = useApp();
   const isAr = language === "ar";
   const L = (en, ar) => isAr ? ar : en;
+
+  // Close sidebar on mobile after selecting conversation
+  const handleSelectConversation = useCallback((id) => {
+    loadConversation(id);
+    setSidebarOpen(false);
+  }, [loadConversation]);
+
+  const handleCreateConversation = useCallback(async () => {
+    const conv = await createConversation(contextType);
+    setSidebarOpen(false);
+    return conv;
+  }, [createConversation, contextType]);
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -112,9 +126,19 @@ export default function AIAgentView() {
   };
 
   return (
-    <div style={{ display: "flex", height: "calc(100vh - 56px)", background: "var(--bg-base)", direction: isAr ? "rtl" : "ltr" }}>
+    <div style={{ display: "flex", height: "calc(100vh - 56px)", height: "calc(100dvh - 56px)", background: "var(--bg-base)", direction: isAr ? "rtl" : "ltr", position: "relative", overflow: "hidden" }}>
+
+      {/* ── Mobile Sidebar Overlay ── */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 40, display: "none" }}
+          className="ai-sidebar-overlay"
+        />
+      )}
+
       {/* ── LEFT PANEL: Conversation List ── */}
-      <div style={{
+      <div className={`ai-sidebar ${sidebarOpen ? 'ai-sidebar-open' : ''}`} style={{
         width: "30%", minWidth: 280, maxWidth: 380, borderInlineEnd: "1px solid var(--border-primary)",
         display: "flex", flexDirection: "column", background: "var(--bg-surface)",
       }}>
@@ -128,13 +152,21 @@ export default function AIAgentView() {
             }}>
               <Bot size={16} color="white" />
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 14 }}>{L("AI Agent", "وكيل الذكاء الاصطناعي")}</div>
               <div style={{ color: "var(--text-tertiary)", fontSize: 10, fontFamily: "monospace" }}>{L("RISK INTELLIGENCE", "ذكاء المخاطر")}</div>
             </div>
+            {/* Mobile close button */}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="ai-sidebar-close"
+              style={{ display: "none", background: "none", border: "none", color: "#94a3b8", cursor: "pointer", padding: 4 }}
+            >
+              <X size={18} />
+            </button>
           </div>
           <button
-            onClick={() => { createConversation(contextType); }}
+            onClick={handleCreateConversation}
             style={{
               width: "100%", padding: "10px 16px", borderRadius: 8,
               background: "linear-gradient(135deg, #06b6d4, #0891b2)",
@@ -171,7 +203,7 @@ export default function AIAgentView() {
             return (
               <div
                 key={conv.id}
-                onClick={() => loadConversation(conv.id)}
+                onClick={() => handleSelectConversation(conv.id)}
                 style={{
                   padding: "10px 12px", borderRadius: 8, cursor: "pointer", marginBottom: 4,
                   background: isActive ? "rgba(6,182,212,0.1)" : "transparent",
@@ -211,12 +243,23 @@ export default function AIAgentView() {
       </div>
 
       {/* ── RIGHT PANEL: Chat Interface ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         {/* Chat Header */}
         <div style={{
-          padding: "12px 20px", borderBottom: "1px solid var(--border-primary)",
-          display: "flex", alignItems: "center", gap: 10, background: "var(--bg-base)",
+          padding: "12px 16px", borderBottom: "1px solid var(--border-primary)",
+          display: "flex", alignItems: "center", gap: 8, background: "var(--bg-base)",
         }}>
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="ai-mobile-menu-btn"
+            style={{
+              display: "none", background: "none", border: "none", color: "#94a3b8",
+              cursor: "pointer", padding: 4, flexShrink: 0,
+            }}
+          >
+            <Menu size={18} />
+          </button>
           <Sparkles size={16} style={{ color: "var(--accent-primary)" }} />
           <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 14 }}>
             {activeConversation?.title || L("AI Risk Intelligence Agent", "وكيل ذكاء المخاطر")}
@@ -309,29 +352,31 @@ export default function AIAgentView() {
         </div>
 
         {/* Input Bar */}
-        <div style={{ padding: "12px 20px 16px", display: "flex", gap: 8, alignItems: "end" }}>
+        <div className="ai-input-bar" style={{ padding: "10px 16px 16px", display: "flex", gap: 8, alignItems: "end", borderTop: "1px solid var(--border-primary)", paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
           <select
             value={contextType} onChange={e => setContextType(e.target.value)}
+            className="ai-context-select"
             style={{
               padding: "8px 10px", borderRadius: 8, background: "var(--bg-card)",
               border: "1px solid var(--border-secondary)", color: "var(--text-primary)", fontSize: 12,
-              outline: "none", cursor: "pointer", minWidth: 120,
+              outline: "none", cursor: "pointer", minWidth: 100, flexShrink: 0,
             }}
           >
             {CONTEXT_TYPES.map(ct => (
               <option key={ct.value} value={ct.value}>{ct.label[language] || ct.label.en}</option>
             ))}
           </select>
-          <div style={{ flex: 1, position: "relative" }}>
+          <div style={{ flex: 1, position: "relative", minWidth: 0 }}>
             <textarea
+              ref={inputRef}
               value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={L("Ask the AI Agent about your risk data...", "اسأل الوكيل عن بيانات مخاطرك...")}
+              placeholder={L("Ask the AI Agent...", "اسأل الوكيل...")}
               rows={1}
               style={{
                 width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10,
                 background: "var(--bg-card)", border: "1px solid var(--border-secondary)", color: "var(--text-primary)",
-                fontSize: 13, outline: "none", resize: "none", boxSizing: "border-box",
+                fontSize: 14, outline: "none", resize: "none", boxSizing: "border-box",
                 fontFamily: "inherit", lineHeight: 1.5,
               }}
             />
@@ -351,7 +396,48 @@ export default function AIAgentView() {
         </div>
       </div>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Mobile Responsive ── */
+        @media (max-width: 768px) {
+          .ai-sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            ${isAr ? 'right: 0' : 'left: 0'} !important;
+            width: 85% !important;
+            max-width: 320px !important;
+            min-width: unset !important;
+            z-index: 50 !important;
+            transform: translateX(${isAr ? '100%' : '-100%'});
+            transition: transform 0.3s ease !important;
+            box-shadow: none;
+          }
+          .ai-sidebar.ai-sidebar-open {
+            transform: translateX(0) !important;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5) !important;
+          }
+          .ai-sidebar-overlay {
+            display: block !important;
+          }
+          .ai-sidebar-close {
+            display: flex !important;
+          }
+          .ai-mobile-menu-btn {
+            display: flex !important;
+          }
+          .ai-input-bar {
+            padding: 8px 12px 12px !important;
+            padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+          }
+          .ai-context-select {
+            min-width: 80px !important;
+            font-size: 11px !important;
+            padding: 6px 6px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

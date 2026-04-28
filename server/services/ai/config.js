@@ -10,10 +10,10 @@ function getConfig() {
       baseURL: 'https://openrouter.ai/api/v1',
     },
     models: {
-      primary: process.env.AI_PRIMARY_MODEL || 'qwen/qwen-2.5-72b-instruct',
-      fast: process.env.AI_FAST_MODEL || 'deepseek/deepseek-chat',
+      primary: process.env.AI_PRIMARY_MODEL || 'qwen/qwen3.6-plus',
+      fast: process.env.AI_FAST_MODEL || 'deepseek/deepseek-v4-flash',
       fallback: process.env.AI_FALLBACK_MODEL || 'meta-llama/llama-3.3-70b-instruct',
-      free: 'meta-llama/llama-3.1-8b-instruct:free',
+      free: 'deepseek/deepseek-v4-flash',
     },
     cache: {
       enabled: process.env.AI_CACHE_ENABLED !== 'false',
