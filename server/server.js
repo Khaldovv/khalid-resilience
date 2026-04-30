@@ -26,6 +26,7 @@ const biaAssetRoutes       = require('./routes/biaAssets');
 const adminAIRoutes        = require('./routes/adminAI');
 const bcpRoutes            = require('./routes/bcp');
 const notificationRoutes   = require('./routes/notifications');
+const dashboardRoutes      = require('./routes/dashboard');
 
 const sanitizeInputs = require('./middleware/sanitizeInputs');
 const demoGuard = require('./middleware/demoGuard');
@@ -159,6 +160,7 @@ app.use('/api/v1/bia/assets',     biaAssetRoutes);
 app.use('/api/v1/admin/ai',       adminAIRoutes);
 app.use('/api/v1/bcp',            bcpRoutes);
 app.use('/api/v1/notifications',  notificationRoutes);
+app.use('/api/v1/dashboard',      dashboardRoutes);
 
 // ── Sumood Compliance (import with catch in case file upload deps missing) ─────
 try {

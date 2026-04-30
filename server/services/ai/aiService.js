@@ -71,29 +71,37 @@ class AIService {
       }
     }
 
-    // Call OpenRouter
+    // Call OpenRouter with multi-level fallback
     const startTime = Date.now();
     let response;
-    try {
-      response = await this.client.chat.completions.create({
-        model: selectedModel,
-        messages,
-        temperature,
-        max_tokens: maxTokens,
-      });
-    } catch (err) {
-      // Try fallback model
-      if (options.fallbackEnabled !== false) {
-        console.warn('[AI] Primary model failed, using fallback:', err.message);
+    const modelsToTry = [selectedModel];
+    if (options.fallbackEnabled !== false) {
+      if (this.config.models.fallback && this.config.models.fallback !== selectedModel) {
+        modelsToTry.push(this.config.models.fallback);
+      }
+      if (this.config.models.free && !modelsToTry.includes(this.config.models.free)) {
+        modelsToTry.push(this.config.models.free);
+      }
+    }
+
+    let lastError;
+    for (const modelId of modelsToTry) {
+      try {
         response = await this.client.chat.completions.create({
-          model: this.config.models.fallback,
+          model: modelId,
           messages,
           temperature,
           max_tokens: maxTokens,
         });
-      } else {
-        throw err;
+        if (response) break; // Success
+      } catch (err) {
+        lastError = err;
+        console.warn(`[AI] Model ${modelId} failed:`, err.message);
       }
+    }
+
+    if (!response) {
+      throw lastError || new Error('All AI models failed. Check OPENROUTER_API_KEY and model availability.');
     }
 
     const latencyMs = Date.now() - startTime;
@@ -251,22 +259,27 @@ ${JSON.stringify(analysisSchema.outputSchema, null, 2)}
   _selectModel(feature, requested, _language) {
     if (requested && requested !== 'auto') return requested;
 
+    // Use config models (env-overridable) instead of hardcoded IDs
+    const primary = this.config.models.primary;
+    const fast = this.config.models.fast;
+
     const featureModelMap = {
       // High quality — Arabic reasoning
-      ai_agent:          'qwen/qwen3.6-plus',
-      risk_simulation:   'qwen/qwen3.6-plus',
-      risk_generator:    'qwen/qwen3.6-plus',
-      sumood_compliance: 'qwen/qwen3.6-plus',
+      ai_agent:          primary,
+      risk_simulation:   primary,
+      risk_generator:    primary,
+      sumood_compliance: primary,
+      document_analysis: primary,
       // Fast & cheap
-      predictive_insights: 'deepseek/deepseek-v4-flash',
-      regulatory_analysis: 'deepseek/deepseek-v4-flash',
-      dashboard_summary:   'deepseek/deepseek-v4-flash',
-      classification:      'deepseek/deepseek-v4-flash',
+      predictive_insights: fast,
+      regulatory_analysis: fast,
+      dashboard_summary:   fast,
+      classification:      fast,
       // Default
-      general: 'deepseek/deepseek-v4-flash',
+      general: fast,
     };
 
-    return featureModelMap[feature] || featureModelMap.general;
+    return featureModelMap[feature] || fast;
   }
 
   _buildMessages(systemPrompt, history, currentPrompt, language) {
