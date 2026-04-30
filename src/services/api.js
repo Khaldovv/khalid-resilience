@@ -41,10 +41,13 @@ async function request(endpoint, options = {}) {
     headers,
   });
 
-  // Handle token expiry
+  // Handle token expiry — skip for demo users to avoid cascading failures
   if (res.status === 401) {
-    clearToken();
-    window.dispatchEvent(new CustomEvent('auth:expired'));
+    const isDemo = localStorage.getItem('isDemo') === 'true';
+    if (!isDemo) {
+      clearToken();
+      window.dispatchEvent(new CustomEvent('auth:expired'));
+    }
   }
 
   if (!res.ok) {
